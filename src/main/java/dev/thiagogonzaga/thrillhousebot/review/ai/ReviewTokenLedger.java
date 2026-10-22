@@ -19,6 +19,7 @@ import dev.thiagogonzaga.thrillhousebot.config.ThrillhouseConfig;
 import io.quarkus.logging.Log;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.LongAdder;
@@ -55,6 +56,9 @@ import java.util.concurrent.atomic.LongAdder;
  * onto its plan before clearing the entry. A repeat that was stopped because the model wrote its
  * deliberation into the response (#893) is noted too, and counted apart, so the summary can tell a
  * review produced with reasoning off from one whose repeat delivered nothing.
+ *
+ * <p>The entry also holds the model the review's calls were routed to (#43), for the same reason:
+ * the route is decided once per review and read by every batch, each on its own thread.
  */
 @ApplicationScoped
 public class ReviewTokenLedger {
@@ -67,6 +71,7 @@ public class ReviewTokenLedger {
     private final LongAdder spent = new LongAdder();
     private final AtomicInteger reasoningStepDowns = new AtomicInteger();
     private final AtomicInteger stoppedRepeats = new AtomicInteger();
+    private volatile String routedModel;
   }
 
   @Inject
@@ -128,6 +133,23 @@ public class ReviewTokenLedger {
     }
     var stopped = entry.stoppedRepeats.get();
     return new ReasoningStepDown(entry.reasoningStepDowns.get() > stopped, stopped > 0);
+  }
+
+  /**
+   * Routes the review's calls to {@code model} instead of {@code AI_MODEL} (#43). Dropped for a
+   * session with no open entry, like {@link #recordUsage}.
+   */
+  public void routeTo(long sessionId, String model) {
+    var entry = entries.get(sessionId);
+    if (entry != null) {
+      entry.routedModel = model;
+    }
+  }
+
+  /** The model the review's calls were routed to; empty when they go to {@code AI_MODEL}. */
+  public Optional<String> routedModel(long sessionId) {
+    var entry = entries.get(sessionId);
+    return entry == null ? Optional.empty() : Optional.ofNullable(entry.routedModel);
   }
 
   /** Total tokens (input + output) recorded for this review so far; 0 when nothing is open. */

@@ -98,6 +98,9 @@ class StartupConfigValidatorTest {
     private String blockingStrictness = "balanced";
     private double secretScanEntropyThreshold = 3.5;
     private String modelName = "deepseek-chat";
+    private Optional<String> lowRiskModel = Optional.empty();
+    private Optional<String> fallbackModel = Optional.empty();
+    private int lowRiskMaxChangedLines = 100;
     private Optional<Integer> conciseMaxOutputTokens = Optional.of(8192);
     private final Map<String, ThrillhouseConfig.AiPricingConfig.ModelSettings> models =
         new HashMap<>();
@@ -228,6 +231,13 @@ class StartupConfigValidatorTest {
       return this;
     }
 
+    ConfigBuilder routing(Optional<String> lowRisk, Optional<String> fallback, int maxLines) {
+      this.lowRiskModel = lowRisk;
+      this.fallbackModel = fallback;
+      this.lowRiskMaxChangedLines = maxLines;
+      return this;
+    }
+
     ConfigBuilder modelName(String v) {
       this.modelName = v;
       return this;
@@ -250,6 +260,11 @@ class StartupConfigValidatorTest {
       lenient().when(config.review()).thenReturn(review);
       lenient().when(config.ai()).thenReturn(ai);
       lenient().when(ai.reasoning()).thenReturn(reasoning);
+      var routing = mock(ThrillhouseConfig.AiPricingConfig.RoutingConfig.class);
+      lenient().when(ai.routing()).thenReturn(routing);
+      lenient().when(routing.lowRiskModel()).thenReturn(lowRiskModel);
+      lenient().when(routing.fallbackModel()).thenReturn(fallbackModel);
+      lenient().when(routing.lowRiskMaxChangedLines()).thenReturn(lowRiskMaxChangedLines);
       lenient().when(reasoning.enabled()).thenReturn(reasoningEnabled);
       lenient().when(reasoning.effort()).thenReturn(reasoningEffort);
       lenient().when(reasoning.conciseEffort()).thenReturn(conciseReasoningEffort);
@@ -352,6 +367,68 @@ class StartupConfigValidatorTest {
 
   private static ConfigValidationException assertFailsValidation(StartupConfigValidator validator) {
     return assertThrows(ConfigValidationException.class, validator::validate);
+  }
+
+  @Test
+  void passesWithRoutedModelsThatFitTheBudget() {
+    var cheap = emptyModelSettings();
+    lenient().when(cheap.maxInputTokens()).thenReturn(Optional.of(64_000));
+    new ConfigBuilder()
+        .routing(Optional.of("cheap"), Optional.of("backup"), 100)
+        .model("cheap", cheap)
+        .build()
+        .validate();
+  }
+
+  @Test
+  void refusesARoutedModelWhoseWindowIsBelowTheBudget() {
+    // #43: the plan is sized for the active model, so a routed model with a smaller declared input
+    // cap would be refused for length on a call that fits.
+    var small = emptyModelSettings();
+    lenient().when(small.maxInputTokens()).thenReturn(Optional.of(16_000));
+    var ex =
+        assertFailsValidation(
+            new ConfigBuilder()
+                .routing(Optional.empty(), Optional.of("small"), 100)
+                .model("small", small)
+                .build());
+    assertTrue(
+        ex.getMessage().contains("AI_FALLBACK_MODEL model 'small' declares max-input-tokens=16000"),
+        ex.getMessage());
+  }
+
+  @Test
+  void refusesARoutedModelThatIsTheActiveModel() {
+    var ex =
+        assertFailsValidation(
+            new ConfigBuilder()
+                .routing(Optional.of("deepseek-chat"), Optional.of(" "), 100)
+                .build());
+    assertTrue(
+        ex.getMessage().contains("AI_ROUTING_LOW_RISK_MODEL names the active model"),
+        ex.getMessage());
+  }
+
+  @Test
+  void refusesANegativeLowRiskLineThreshold() {
+    var ex =
+        assertFailsValidation(
+            new ConfigBuilder().routing(Optional.empty(), Optional.empty(), -1).build());
+    assertTrue(
+        ex.getMessage().contains("AI_ROUTING_LOW_RISK_MAX_CHANGED_LINES must be >= 0"),
+        ex.getMessage());
+  }
+
+  @Test
+  void passesWhenBudgetingIsOffWhateverTheRoutedWindow() {
+    var small = emptyModelSettings();
+    lenient().when(small.maxInputTokens()).thenReturn(Optional.of(16_000));
+    new ConfigBuilder()
+        .maxInputTokens(0)
+        .routing(Optional.of("small"), Optional.empty(), 0)
+        .model("small", small)
+        .build()
+        .validate();
   }
 
   @Test

@@ -4,6 +4,10 @@ All notable changes to ThrillhouseBot.
 
 ## [Unreleased]
 
+### Added
+
+- **Risk-based model routing and fallback** (#43). `AI_ROUTING_LOW_RISK_MODEL` sends the review calls of a low-risk pull request (only docs, text or lockfiles, or a small change touching no high-risk path) to a cheaper model, and `AI_FALLBACK_MODEL` takes over a review or summary call's remaining retries after a provider error or rate limit. Both are off by default and use the same provider; the paths and the size threshold are configurable.
+
 ### Fixed
 
 - The version bump pull request opened after a release now passes the DCO check. Its commit was not signed off, and the check accepts an unsigned bot commit only when it has a verified signature (#1226).
