@@ -44,19 +44,19 @@ public class DashboardSessionValidator {
     return sessionStore.findSession(sessionId).isPresent();
   }
 
+  /**
+   * The session a WebSocket ticket was issued for, consuming the ticket; empty for an unknown,
+   * reused or expired ticket (#1223).
+   */
+  public Optional<String> redeemSocketTicket(String ticket) {
+    return sessionStore.redeemSocketTicket(ticket);
+  }
+
   public Optional<String> resolveLogin(String sessionId) {
     return sessionStore
         .findSession(sessionId)
         .filter(session -> accessChecker.hasAccess(session.login()))
         .map(DashboardSessionStore.DashboardSession::login);
-  }
-
-  /** Returns whether this session's login may read data for the requested installed repository. */
-  public boolean hasRepositoryAccess(String sessionId, String repository) {
-    return sessionStore
-        .findSession(sessionId)
-        .filter(session -> accessChecker.hasRepositoryAccess(session.login(), repository))
-        .isPresent();
   }
 
   /**

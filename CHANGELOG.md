@@ -6,7 +6,40 @@ All notable changes to ThrillhouseBot.
 
 ### Added
 
-- **Risk-based model routing and fallback** (#43). `AI_ROUTING_LOW_RISK_MODEL` sends the review calls of a low-risk pull request (no high-risk path, which wins over an overlapping low-risk glob, and either only docs, text or lockfiles or a small change) to a cheaper model, and `AI_FALLBACK_MODEL` takes over a review or summary call's remaining retries after a provider error or rate limit. Both are off by default and use the same provider; the paths and the size threshold are configurable.
+- **Risk-based model routing and fallback** (#43). `AI_ROUTING_LOW_RISK_MODEL` sends the review
+  calls of a low-risk pull request (no high-risk path, which wins over an overlapping low-risk glob,
+  and either only docs, text or lockfiles or a small change) to a cheaper model, and
+  `AI_FALLBACK_MODEL` takes over a review or summary call's remaining retries after a provider error
+  or rate limit. Both are off by default and use the same provider; the paths and the size threshold
+  are configurable.
+
+### Changed
+
+- Flyway now owns the database schema. Migrations in `src/main/resources/db/migration` run at
+  startup, and Hibernate only validates the entities against them instead of updating the schema
+  itself. A database created before this release has the tables but no history; on its first
+  start it is recorded as version 1, the v0.8.0 schema, and only later migrations run. Upgrade
+  from v0.8.x. The dev and test databases are in-memory H2 in PostgreSQL mode, built from the
+  same migrations. (#22)
+- Stored reviews, pauses, finding feedback and learnings are scoped by GitHub App installation
+  and the repository's numeric id instead of the `owner/repo` name. A repository of the same name
+  under another installation, or one deleted and re-created, no longer sees another's history,
+  and a renamed repository keeps its own. On the first start after the upgrade the bot fills the
+  ids in for existing rows; rows of a repository it cannot match stay hidden, except a pause,
+  which is still honored. The repository configuration caches are keyed by installation too.
+  (#1220)
+### Security
+
+- The dashboard WebSocket no longer takes its session from the endpoint configuration that every
+  handshake shares. After any user had connected, a socket opened without a session cookie was
+  authenticated as that user and received their live review events, and two handshakes at the
+  same time could swap identities. The page now fetches a single-use ticket from
+  `POST /api/auth/socket-ticket` and opens the socket with it in the query string; the ticket
+  expires after 30 seconds and works once. The session cookie is no longer accepted as a query
+  parameter. (#1223)
+- A session link posted on GitHub (`/session/<id>`) now redirects to the session's page only for
+  a dashboard login that may read it; anyone else is sent to the sessions list, so the link no
+  longer reveals the session's numeric id. (#1220)
 
 ### Fixed
 

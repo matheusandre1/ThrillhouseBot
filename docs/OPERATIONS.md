@@ -3,8 +3,7 @@
 
 This guide covers stored data, health probes, shutdown, backups and upgrades.
 Commands use the repository's `docker-compose.yml`, with the services
-`thrillhousebot` and `db`. Hibernate updates the schema at startup; there are no
-migration scripts. Back up the database before an upgrade and restore that
+`thrillhousebot` and `db`. Flyway migrates the schema at startup. Back up the database before an upgrade and restore that
 backup if you need to return to an older version.
 
 ## What is stored, and what is not
@@ -63,7 +62,7 @@ The bot serves the SmallRye Health endpoints on its HTTP port (8080, or
 | `/q/health` | All of the above together | Manual checks |
 
 The bot does not start without its database. When PostgreSQL cannot be reached
-at boot, Hibernate cannot update the schema and the process exits with
+at boot, Flyway cannot migrate the schema and the process exits with
 `Failed to start application`. With `restart: unless-stopped` Compose starts it
 again, and the bot service waits for the `db` health check on the first start.
 
@@ -225,12 +224,26 @@ Use your `DB_USER` in place of `thrillhouse` after `-U` if you changed it.
 
 ## Upgrades and database changes
 
-There are no migration scripts. On startup the production profile lets
-Hibernate update the schema in place (`schema-management.strategy=update`): it
-creates missing tables and columns and never drops or renames them. On a new,
-empty database the first start logs warnings such as
-`constraint "uq_pausedpr_repository_pr" of relation "pausedpr" does not exist,
-skipping`; they are expected.
+Schema changes ship as Flyway migrations, which run on startup in order and
+are recorded in the `flyway_schema_history` table. Hibernate then checks that
+the schema matches what the release expects, and the start fails with a
+`Schema-validation` error if it does not.
+
+A database created before v0.9.0 has the tables but no history table. On its
+first start Flyway records it as version 1, the v0.8.0 schema
+(`Baselining schema "public" to version 1`), and applies only the later
+migrations. Upgrade such a database from v0.8.x; an older one should first be
+started once on v0.8.x so that its schema reaches the v0.8.0 shape.
+
+From v0.9.0 every stored row carries the GitHub App installation id and the
+repository's numeric id. On the first start after the upgrade the bot fills them
+in for existing rows, matching each `owner/repo` to the installations it can
+see, and logs `Scope backfill: matched N repository name(s) and filled M
+row(s)`. Rows of a repository it cannot match (deleted, transferred to another
+account, or no longer installed) stay hidden from the dashboard and from later
+reviews; the bot tries them again on every start. A pause it cannot match is
+still honored, and `/resume` lifts it. If GitHub cannot be reached, nothing is
+written and the next start tries again.
 
 To upgrade:
 

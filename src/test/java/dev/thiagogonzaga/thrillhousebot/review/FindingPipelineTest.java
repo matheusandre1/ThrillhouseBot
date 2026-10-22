@@ -43,6 +43,7 @@ import dev.thiagogonzaga.thrillhousebot.dashboard.ReviewSession;
 import dev.thiagogonzaga.thrillhousebot.github.GitHubPullRequestClient;
 import dev.thiagogonzaga.thrillhousebot.github.GitHubPullRequestClient.FileDiff;
 import dev.thiagogonzaga.thrillhousebot.github.InstructionsResolver;
+import dev.thiagogonzaga.thrillhousebot.github.TestScopes;
 import dev.thiagogonzaga.thrillhousebot.review.ai.AiResponseTruncatedException;
 import dev.thiagogonzaga.thrillhousebot.review.ai.AiReviewException;
 import dev.thiagogonzaga.thrillhousebot.review.ai.AiReviewService;
@@ -205,7 +206,8 @@ class FindingPipelineTest {
 
   @Test
   void multiCallReviewsEachBatchAggregatesAndSummarizes() {
-    var session = ReviewSession.create("owner/repo", 1, "Big PR", "sha");
+    var session =
+        ReviewSession.create(TestScopes.scope("owner/repo"), "owner/repo", 1, "Big PR", "sha");
     var ctx = reviewContext();
     var template = new AiReviewService.PromptInputs("d", "ctx", "base", "stack", "tests", "", "");
 
@@ -260,7 +262,8 @@ class FindingPipelineTest {
     // fails open, so the author of a pull request can switch verification off for their own pull
     // request by writing a long enough description. The block must arrive within its share of the
     // per-call budget, with the cut disclosed to the model.
-    var session = ReviewSession.create("owner/repo", 1, "Big PR", "sha");
+    var session =
+        ReviewSession.create(TestScopes.scope("owner/repo"), "owner/repo", 1, "Big PR", "sha");
     var ctx = reviewContext();
     // GitHub's maximum description length, as ordinary prose.
     var description = "The author's stated intent for this change. ".repeat(1525);
@@ -313,7 +316,8 @@ class FindingPipelineTest {
   void aDescriptionInsideItsShareReachesTheVerifierByteExact() {
     // Control for the bound above: it must bite only on the accumulation it exists to stop, so an
     // ordinary description reaches the verifier untouched — same instance, no disclosure.
-    var session = ReviewSession.create("owner/repo", 1, "Big PR", "sha");
+    var session =
+        ReviewSession.create(TestScopes.scope("owner/repo"), "owner/repo", 1, "Big PR", "sha");
     var ctx = reviewContext();
     var prContext =
         PromptTemplateEscaper.fence(
@@ -608,7 +612,7 @@ class FindingPipelineTest {
             null);
     var template = new AiReviewService.PromptInputs("d", "ctx", "base", "stack", "tests", "", "");
 
-    var single = ReviewSession.create("owner/repo", 1, "PR", "sha");
+    var single = ReviewSession.create(TestScopes.scope("owner/repo"), "owner/repo", 1, "PR", "sha");
     when(aiReviewService.review(eq(single), any()))
         .thenReturn(new ReviewResponse(List.of(hedged, unpinned), List.of(), null));
     var singleResult =
@@ -620,7 +624,8 @@ class FindingPipelineTest {
             new DiffLineResolver(Map.of()),
             ReviewEvidence.NONE);
 
-    var multi = ReviewSession.create("owner/repo", 2, "Big PR", "sha");
+    var multi =
+        ReviewSession.create(TestScopes.scope("owner/repo"), "owner/repo", 2, "Big PR", "sha");
     when(aiReviewService.reviewBatch(eq(multi), any(), eq(1), anyInt()))
         .thenReturn(new ReviewResponse(List.of(hedged, unpinned), List.of(), null));
     when(aiReviewService.reviewBatch(eq(multi), any(), eq(2), anyInt()))
@@ -651,7 +656,8 @@ class FindingPipelineTest {
     // cap is cut at the identical point. The generic soft-fail path retries once before giving up,
     // which for a truncation is a second guaranteed-futile billed call. It must go straight to the
     // disclosure instead, exactly once.
-    var session = ReviewSession.create("owner/repo", 1, "Big PR", "sha");
+    var session =
+        ReviewSession.create(TestScopes.scope("owner/repo"), "owner/repo", 1, "Big PR", "sha");
     var ctx = reviewContext();
     var template = new AiReviewService.PromptInputs("d", "ctx", "base", "stack", "tests", "", "");
     when(aiReviewService.reviewBatch(eq(session), any(), eq(1), anyInt()))
@@ -685,7 +691,8 @@ class FindingPipelineTest {
     // #622: a context-length rejection is deterministic — the sequential retry would re-send the
     // identical prompt against the identical window. It must go straight to disclosure instead,
     // exactly once, keeping the batches that succeeded.
-    var session = ReviewSession.create("owner/repo", 1, "Big PR", "sha");
+    var session =
+        ReviewSession.create(TestScopes.scope("owner/repo"), "owner/repo", 1, "Big PR", "sha");
     var ctx = reviewContext();
     var template = new AiReviewService.PromptInputs("d", "ctx", "base", "stack", "tests", "", "");
     when(aiReviewService.reviewBatch(eq(session), any(), eq(1), anyInt()))
@@ -719,7 +726,8 @@ class FindingPipelineTest {
     // The sequential pass still gives the batch the one fresh attempt it gives any transient
     // failure — the parallel pass sends every batch at once, and a deadline missed under that
     // contention can be the contention — and the files are disclosed when that attempt fails too.
-    var session = ReviewSession.create("owner/repo", 1, "Big PR", "sha");
+    var session =
+        ReviewSession.create(TestScopes.scope("owner/repo"), "owner/repo", 1, "Big PR", "sha");
     var ctx = reviewContext();
     var template = new AiReviewService.PromptInputs("d", "ctx", "base", "stack", "tests", "", "");
     when(aiReviewService.reviewBatch(eq(session), any(), eq(1), anyInt()))
@@ -772,7 +780,8 @@ class FindingPipelineTest {
     // #500(a): the partial body travels with the truncation and is well-formed up to the cut. The
     // complete leading findings must be salvaged through the normal validate/verify chain and the
     // batch's files disclosed as PARTIALLY reviewed — not dropped and disclosed as not reviewed.
-    var session = ReviewSession.create("owner/repo", 1, "Big PR", "sha");
+    var session =
+        ReviewSession.create(TestScopes.scope("owner/repo"), "owner/repo", 1, "Big PR", "sha");
     var ctx = reviewContext();
     var template = new AiReviewService.PromptInputs("d", "ctx", "base", "stack", "tests", "", "");
     when(aiReviewService.reviewBatch(eq(session), any(), eq(1), anyInt()))
@@ -826,7 +835,8 @@ class FindingPipelineTest {
     // back to today's behaviour, disclosed as not reviewed. Green-only by necessity: this IS the
     // pre-#500 disclosure, so no assertion here could have failed before the change; the guard
     // pins that salvage never invents a "partially reviewed" claim out of an empty salvage.
-    var session = ReviewSession.create("owner/repo", 1, "Big PR", "sha");
+    var session =
+        ReviewSession.create(TestScopes.scope("owner/repo"), "owner/repo", 1, "Big PR", "sha");
     var ctx = reviewContext();
     var template = new AiReviewService.PromptInputs("d", "ctx", "base", "stack", "tests", "", "");
     when(aiReviewService.reviewBatch(eq(session), any(), eq(1), anyInt()))
@@ -857,7 +867,8 @@ class FindingPipelineTest {
     // A batch can fail transiently in the parallel pass and then truncate on its sequential retry.
     // The retry's truncation must land in the same salvage-or-disclose step, not the generic
     // soft-fail that discards the partial output.
-    var session = ReviewSession.create("owner/repo", 1, "Big PR", "sha");
+    var session =
+        ReviewSession.create(TestScopes.scope("owner/repo"), "owner/repo", 1, "Big PR", "sha");
     var ctx = reviewContext();
     var template = new AiReviewService.PromptInputs("d", "ctx", "base", "stack", "tests", "", "");
     when(aiReviewService.reviewBatch(eq(session), any(), eq(1), anyInt()))
@@ -1158,7 +1169,8 @@ class FindingPipelineTest {
     // The truncation check walks the cause chain, and a cycle (here A caused-by B caused-by A)
     // would spin forever on the review thread if the walk were unbounded. The batch must instead
     // fall through to the ordinary soft-fail path — retried once, then disclosed.
-    var session = ReviewSession.create("owner/repo", 1, "Big PR", "sha");
+    var session =
+        ReviewSession.create(TestScopes.scope("owner/repo"), "owner/repo", 1, "Big PR", "sha");
     var ctx = reviewContext();
     var template = new AiReviewService.PromptInputs("d", "ctx", "base", "stack", "tests", "", "");
     var cyclic = cyclicFailure();
@@ -1222,7 +1234,8 @@ class FindingPipelineTest {
     // review keeps their findings, records the failed batch's files as uncovered (so the verdict
     // holds APPROVE and the summary discloses the gap), and still produces a summary — instead of
     // throwing IllegalStateException and reporting the whole review as failed.
-    var session = ReviewSession.create("owner/repo", 1, "Big PR", "sha");
+    var session =
+        ReviewSession.create(TestScopes.scope("owner/repo"), "owner/repo", 1, "Big PR", "sha");
     var ctx = reviewContext();
     var template = new AiReviewService.PromptInputs("d", "ctx", "base", "stack", "tests", "", "");
     var failure = new AiReviewException("batch blew up", 1, null);
@@ -1257,7 +1270,8 @@ class FindingPipelineTest {
 
   @Test
   void multiCallRetriesFailedBatchWithoutDiscardingSuccessfulOnes() {
-    var session = ReviewSession.create("owner/repo", 1, "Big PR", "sha");
+    var session =
+        ReviewSession.create(TestScopes.scope("owner/repo"), "owner/repo", 1, "Big PR", "sha");
     var ctx = reviewContext();
     var template = new AiReviewService.PromptInputs("d", "ctx", "base", "stack", "tests", "", "");
     var transientFailure = new AiReviewException("transient", 1, null);
@@ -1288,7 +1302,9 @@ class FindingPipelineTest {
 
   @Test
   void summaryOverviewLeadsWithThePureRenameRollup() {
-    var session = ReviewSession.create("owner/repo", 1, "Move a package", "sha");
+    var session =
+        ReviewSession.create(
+            TestScopes.scope("owner/repo"), "owner/repo", 1, "Move a package", "sha");
     var template = new AiReviewService.PromptInputs("d", "ctx", "base", "stack", "tests", "", "");
     var ctx =
         reviewContext(
@@ -1341,7 +1357,9 @@ class FindingPipelineTest {
   void summaryOverviewStatesTheWholePrScopeForAMultiFileRefactor() {
     // The #335 fixture: a decompose whose title/body announce the full scope, but whose summary
     // call sees no diff — without these totals nothing tells it the change is more than one class.
-    var session = ReviewSession.create("owner/repo", 1, "Decompose the orchestrator", "sha");
+    var session =
+        ReviewSession.create(
+            TestScopes.scope("owner/repo"), "owner/repo", 1, "Decompose the orchestrator", "sha");
     var files =
         List.of(
             new FileDiff(
@@ -1368,7 +1386,8 @@ class FindingPipelineTest {
   @Test
   void summaryOverviewScopeUsesGitHubsAuthoritativeTotalsWhenAvailable() {
     // Same totals the rendered Changes Overview reports (#298), so the prose cannot contradict it.
-    var session = ReviewSession.create("owner/repo", 1, "Big PR", "sha");
+    var session =
+        ReviewSession.create(TestScopes.scope("owner/repo"), "owner/repo", 1, "Big PR", "sha");
     var reviewable =
         List.of(
             new FileDiff("a.java", "modified", 3, 0, 3, ""),
@@ -1384,7 +1403,8 @@ class FindingPipelineTest {
   @Test
   void summaryOverviewScopeStaysSingularForASingleFilePr() {
     // No regression on small single-purpose PRs: no multi-file or multi-directory language.
-    var session = ReviewSession.create("owner/repo", 1, "Fix a typo", "sha");
+    var session =
+        ReviewSession.create(TestScopes.scope("owner/repo"), "owner/repo", 1, "Fix a typo", "sha");
     var files = List.of(new FileDiff("src/main/java/app/Tiny.java", "modified", 3, 1, 4, ""));
     var overview = captureSummaryChangedFiles(session, reviewContext(files, files, null));
 
@@ -1399,7 +1419,9 @@ class FindingPipelineTest {
   void summaryOverviewScopeFallsBackToDiffCountsWhenPrTotalsAreEmpty() {
     // A zero file count means the totals carry nothing usable; announcing a zero-file PR over a
     // non-empty file list would contradict the very list printed below it.
-    var session = ReviewSession.create("owner/repo", 1, "Totals unavailable", "sha");
+    var session =
+        ReviewSession.create(
+            TestScopes.scope("owner/repo"), "owner/repo", 1, "Totals unavailable", "sha");
     var reviewable =
         List.of(
             new FileDiff("a.java", "modified", 3, 0, 3, ""),
@@ -1415,7 +1437,9 @@ class FindingPipelineTest {
   @Test
   void summaryOverviewOmitsTheScopeBlockWhenNothingIsInTheChangeSet() {
     // Nothing reviewable and no PR totals: emit no scope header at all rather than "0 files".
-    var session = ReviewSession.create("owner/repo", 1, "Everything ignored", "sha");
+    var session =
+        ReviewSession.create(
+            TestScopes.scope("owner/repo"), "owner/repo", 1, "Everything ignored", "sha");
 
     var overview = captureSummaryChangedFiles(session, reviewContext(List.of(), List.of(), null));
 
@@ -1426,7 +1450,8 @@ class FindingPipelineTest {
   void summaryOverviewScopeKeepsTotalsWhenNoFileSurvivesTheIgnoreGlob() {
     // GitHub still reports the PR's real size when the ignore-glob drops every changed file, so
     // the header stands on its own — with no directory breakdown, which would have to be empty.
-    var session = ReviewSession.create("owner/repo", 1, "All ignored", "sha");
+    var session =
+        ReviewSession.create(TestScopes.scope("owner/repo"), "owner/repo", 1, "All ignored", "sha");
     var ctx = reviewContext(List.of(), List.of(), new ReviewContextLoader.PrTotals(23, 1612, 240));
 
     var overview = captureSummaryChangedFiles(session, ctx);
@@ -1438,7 +1463,8 @@ class FindingPipelineTest {
   void summaryOverviewScopeBucketsAPathWithNoDirectoryAtTheRoot() {
     // A name carrying no directory component — a blank one included — buckets at the root instead
     // of opening a directory row named after it.
-    var session = ReviewSession.create("owner/repo", 1, "Odd payload", "sha");
+    var session =
+        ReviewSession.create(TestScopes.scope("owner/repo"), "owner/repo", 1, "Odd payload", "sha");
     var files =
         List.of(
             new FileDiff("  ", "modified", 2, 0, 2, ""),
@@ -1455,7 +1481,8 @@ class FindingPipelineTest {
 
   @Test
   void summaryOverviewRollsUpDirectoriesBeyondTheCap() {
-    var session = ReviewSession.create("owner/repo", 1, "Wide PR", "sha");
+    var session =
+        ReviewSession.create(TestScopes.scope("owner/repo"), "owner/repo", 1, "Wide PR", "sha");
     var files = new ArrayList<FileDiff>();
     for (var i = 0; i < 12; i++) {
       files.add(new FileDiff("pkg" + i + "/File.java", "modified", 1, 0, 1, ""));
@@ -1470,7 +1497,9 @@ class FindingPipelineTest {
   void onlyTheSummaryCallSeesTheNamesARowDeclaresAndChanges() {
     // #920: the names are the summary call's evidence. The review call's inputs are built before
     // and apart from the changed-files overview, so they carry none of it.
-    var session = ReviewSession.create("owner/repo", 1, "Mailer retries", "sha");
+    var session =
+        ReviewSession.create(
+            TestScopes.scope("owner/repo"), "owner/repo", 1, "Mailer retries", "sha");
     var files =
         List.of(
             new FileDiff(
@@ -1509,7 +1538,9 @@ class FindingPipelineTest {
 
   @Test
   void budgetedSingleBatchSendsThePlannedTextNotTheRawDiff() {
-    var session = ReviewSession.create("owner/repo", 1, "One big file", "sha");
+    var session =
+        ReviewSession.create(
+            TestScopes.scope("owner/repo"), "owner/repo", 1, "One big file", "sha");
     var ctx = reviewContext();
     var template =
         new AiReviewService.PromptInputs("raw legacy diff", "ctx", "base", "s", "t", "", "");
@@ -1529,7 +1560,8 @@ class FindingPipelineTest {
 
   @Test
   void disabledBudgetingKeepsTheLegacyDiffPath() {
-    var session = ReviewSession.create("owner/repo", 1, "PR", "sha");
+    var session =
+        ReviewSession.create(TestScopes.scope("owner/repo"), "owner/repo", 1, "PR", "sha");
     var ctx = reviewContext();
     var template =
         new AiReviewService.PromptInputs("raw legacy diff", "ctx", "base", "s", "t", "", "");
@@ -1575,7 +1607,9 @@ class FindingPipelineTest {
    */
   @Test
   void budgetedReviewCallIsToldWhichPureRenameWasWithheldFromIt() {
-    var session = ReviewSession.create("owner/repo", 1, "Move the README", "sha");
+    var session =
+        ReviewSession.create(
+            TestScopes.scope("owner/repo"), "owner/repo", 1, "Move the README", "sha");
     var app = new FileDiff("src/App.java", "modified", 3, 0, 3, "@@ -1 +1 @@\n+x\n");
     var ctx =
         reviewContext(
@@ -1597,7 +1631,9 @@ class FindingPipelineTest {
   /** The same mechanism names every class of withheld path, not only the pure renames. */
   @Test
   void withheldNoticeAlsoNamesIgnoreListedAndOverBudgetPaths() {
-    var session = ReviewSession.create("owner/repo", 1, "Bump a dependency", "sha");
+    var session =
+        ReviewSession.create(
+            TestScopes.scope("owner/repo"), "owner/repo", 1, "Bump a dependency", "sha");
     var app = new FileDiff("src/App.java", "modified", 3, 0, 3, "@@ -1 +1 @@\n+x\n");
     var ctx =
         reviewContext(
@@ -1616,7 +1652,8 @@ class FindingPipelineTest {
   /** #628: a patchless file is named as content GitHub withheld, never as a budget overflow. */
   @Test
   void withheldNoticeNamesPatchlessFilesWithoutBlamingTheBudget() {
-    var session = ReviewSession.create("owner/repo", 1, "Add an icon", "sha");
+    var session =
+        ReviewSession.create(TestScopes.scope("owner/repo"), "owner/repo", 1, "Add an icon", "sha");
     var app = new FileDiff("src/App.java", "modified", 3, 0, 3, "@@ -1 +1 @@\n+x\n");
     var ctx = reviewContext(List.of(app), List.of(app), null);
     var plan =
@@ -1644,7 +1681,8 @@ class FindingPipelineTest {
   /** #628: the summary overview gives a patchless file its honest reason and drops its row. */
   @Test
   void summaryOverviewNamesPatchlessFilesWithoutBlamingTheBudget() {
-    var session = ReviewSession.create("owner/repo", 1, "Add an icon", "sha");
+    var session =
+        ReviewSession.create(TestScopes.scope("owner/repo"), "owner/repo", 1, "Add an icon", "sha");
     var app = new FileDiff("src/App.java", "modified", 3, 0, 3, "@@ -1 +1 @@\n+x\n");
     var logo = new FileDiff("assets/logo.png", "added", 9, 0, 9, null);
     var ctx = reviewContext(List.of(app, logo), List.of(app, logo), null);
@@ -1717,7 +1755,8 @@ class FindingPipelineTest {
   /** A rename GitHub reported without a previous path degrades to its current path alone. */
   @Test
   void withheldNoticeFallsBackToTheCurrentPathWhenNoPreviousOneIsReported() {
-    var session = ReviewSession.create("owner/repo", 1, "Move files", "sha");
+    var session =
+        ReviewSession.create(TestScopes.scope("owner/repo"), "owner/repo", 1, "Move files", "sha");
     var ctx =
         reviewContext(
             List.of(
@@ -1735,7 +1774,9 @@ class FindingPipelineTest {
   /** A bulk move must not crowd the diff out of the call: the tail is rolled up by count. */
   @Test
   void withheldNoticeRollsUpThePathsBeyondTheCap() {
-    var session = ReviewSession.create("owner/repo", 1, "Move a package", "sha");
+    var session =
+        ReviewSession.create(
+            TestScopes.scope("owner/repo"), "owner/repo", 1, "Move a package", "sha");
     var files = new ArrayList<FileDiff>();
     for (var i = 0; i < 23; i++) {
       files.add(
@@ -1760,7 +1801,8 @@ class FindingPipelineTest {
   /** Nothing withheld: the prompt the model receives is exactly the planned batch text. */
   @Test
   void nothingWithheldLeavesTheBudgetedPromptUnchanged() {
-    var session = ReviewSession.create("owner/repo", 1, "Ordinary PR", "sha");
+    var session =
+        ReviewSession.create(TestScopes.scope("owner/repo"), "owner/repo", 1, "Ordinary PR", "sha");
     var app = new FileDiff("src/App.java", "modified", 3, 0, 3, "@@ -1 +1 @@\n+x\n");
     var ctx = reviewContext(List.of(app), List.of(app), null);
 
@@ -1773,7 +1815,9 @@ class FindingPipelineTest {
   /** Every batch of a multi-call review carries the same PR-level disclosure. */
   @Test
   void everyBatchOfAMultiCallReviewIsToldWhatWasWithheld() {
-    var session = ReviewSession.create("owner/repo", 1, "Big PR with a move", "sha");
+    var session =
+        ReviewSession.create(
+            TestScopes.scope("owner/repo"), "owner/repo", 1, "Big PR with a move", "sha");
     var template = new AiReviewService.PromptInputs("d", "ctx", "base", "stack", "tests", "", "");
     var ctx =
         reviewContext(
@@ -1808,7 +1852,9 @@ class FindingPipelineTest {
    */
   @Test
   void theInfrastructureAnchorOutlivesAVerifierDowngrade() {
-    var session = ReviewSession.create("owner/repo", 1, "Add the container image", "sha");
+    var session =
+        ReviewSession.create(
+            TestScopes.scope("owner/repo"), "owner/repo", 1, "Add the container image", "sha");
     var ctx = reviewContext();
     var template =
         new AiReviewService.PromptInputs("raw legacy diff", "ctx", "base", "s", "t", "", "");
@@ -1860,7 +1906,9 @@ class FindingPipelineTest {
    */
   @Test
   void anUnpinnedFindingOnAVersionedCopyFromLineIsDroppedAtTheDiffsPathSpelling() {
-    var session = ReviewSession.create("owner/repo", 1, "Add the container image", "sha");
+    var session =
+        ReviewSession.create(
+            TestScopes.scope("owner/repo"), "owner/repo", 1, "Add the container image", "sha");
     var ctx = reviewContext();
     var template =
         new AiReviewService.PromptInputs("raw legacy diff", "ctx", "base", "s", "t", "", "");
@@ -2205,7 +2253,8 @@ class FindingPipelineTest {
 
   @Test
   void resolvedFromABatchThatNeverSawTheFileIsDemotedToUnresolved() {
-    var session = ReviewSession.create("owner/repo", 1, "Big PR", "sha");
+    var session =
+        ReviewSession.create(TestScopes.scope("owner/repo"), "owner/repo", 1, "Big PR", "sha");
     var ctx = reviewContext();
     var template = new AiReviewService.PromptInputs("d", "ctx", "base", "stack", "tests", "", "");
     when(followUpAnalyzer.previousFindingFilesById(
@@ -2249,7 +2298,9 @@ class FindingPipelineTest {
 
   @Test
   void singleBudgetedBatchScopesResolutionClaimsLikeTheMultiCallPath() {
-    var session = ReviewSession.create("owner/repo", 1, "One clipped file", "sha");
+    var session =
+        ReviewSession.create(
+            TestScopes.scope("owner/repo"), "owner/repo", 1, "One clipped file", "sha");
     var ctx = reviewContext();
     var template = new AiReviewService.PromptInputs("raw", "ctx", "base", "s", "t", "", "");
     when(followUpAnalyzer.previousFindingFilesById(
@@ -2284,7 +2335,8 @@ class FindingPipelineTest {
 
   @Test
   void resolvedFromABatchThatOnlySawTheClippedFileIsDemoted() {
-    var session = ReviewSession.create("owner/repo", 1, "Big PR", "sha");
+    var session =
+        ReviewSession.create(TestScopes.scope("owner/repo"), "owner/repo", 1, "Big PR", "sha");
     var ctx = reviewContext();
     var template = new AiReviewService.PromptInputs("d", "ctx", "base", "stack", "tests", "", "");
     when(followUpAnalyzer.previousFindingFilesById(
@@ -2335,7 +2387,9 @@ class FindingPipelineTest {
    */
   @Test
   void aPr532SizedOverviewKeepsFarMoreRowsThanTheWalkthroughRenders() {
-    var session = ReviewSession.create("owner/repo", 1, "Release/v0.6.0", "sha");
+    var session =
+        ReviewSession.create(
+            TestScopes.scope("owner/repo"), "owner/repo", 1, "Release/v0.6.0", "sha");
     var files = new ArrayList<FileDiff>();
     for (var i = 0; i < 170; i++) {
       files.add(
@@ -2380,7 +2434,8 @@ class FindingPipelineTest {
 
   @Test
   void overviewIsWithheldWhenTheInheritedSectionsExhaustTheBudget() {
-    var session = ReviewSession.create("owner/repo", 1, "Huge PR", "sha");
+    var session =
+        ReviewSession.create(TestScopes.scope("owner/repo"), "owner/repo", 1, "Huge PR", "sha");
     var ctx = reviewContext();
     var template = new AiReviewService.PromptInputs("d", "d", "", "", "", "", "");
     when(budgetPlanner.perCallInputBudget()).thenReturn(10);
@@ -2405,7 +2460,8 @@ class FindingPipelineTest {
 
   @Test
   void summaryFindingsJsonFallsToEmptyWhenNothingFitsTheBudget() {
-    var session = ReviewSession.create("owner/repo", 1, "Big PR", "sha");
+    var session =
+        ReviewSession.create(TestScopes.scope("owner/repo"), "owner/repo", 1, "Big PR", "sha");
     var ctx = reviewContext();
     var template = new AiReviewService.PromptInputs("d", "d", "", "", "", "", "");
     when(budgetPlanner.perCallInputBudget()).thenReturn(10);
@@ -2431,7 +2487,8 @@ class FindingPipelineTest {
 
   @Test
   void clippedFilesAreDisclosedAsPartiallyAnalyzedInTheSummaryOverview() {
-    var session = ReviewSession.create("owner/repo", 1, "Big PR", "sha");
+    var session =
+        ReviewSession.create(TestScopes.scope("owner/repo"), "owner/repo", 1, "Big PR", "sha");
     var ctx = reviewContext();
     var template = new AiReviewService.PromptInputs("d", "ctx", "base", "stack", "tests", "", "");
     var plan =
@@ -2466,7 +2523,8 @@ class FindingPipelineTest {
    */
   @Test
   void anUnnamedReviewableFileIsNeitherOmittedNorClippedInTheSummaryOverview() {
-    var session = ReviewSession.create("owner/repo", 1, "Big PR", "sha");
+    var session =
+        ReviewSession.create(TestScopes.scope("owner/repo"), "owner/repo", 1, "Big PR", "sha");
     var ctx =
         reviewContext(
             List.of(),
@@ -2504,7 +2562,8 @@ class FindingPipelineTest {
 
   @Test
   void summaryFindingsJsonIsClampedToThePerCallBudget() throws Exception {
-    var session = ReviewSession.create("owner/repo", 1, "Big PR", "sha");
+    var session =
+        ReviewSession.create(TestScopes.scope("owner/repo"), "owner/repo", 1, "Big PR", "sha");
     var ctx = reviewContext();
     var template = new AiReviewService.PromptInputs("d", "d", "", "", "", "", "");
     // Descriptions long enough that one finding outweighs the changed-files overview: the budget
@@ -2569,7 +2628,8 @@ class FindingPipelineTest {
 
   /** A session persisted far enough to have an id, which the token ledger is keyed by. */
   private static ReviewSession persistedSession() {
-    var session = ReviewSession.create("owner/repo", 1, "Big PR", "sha");
+    var session =
+        ReviewSession.create(TestScopes.scope("owner/repo"), "owner/repo", 1, "Big PR", "sha");
     session.id = 42L;
     return session;
   }
@@ -2987,7 +3047,8 @@ class FindingPipelineTest {
 
   @Test
   void budgetedPlanWithNoFittingBatchSkipsTheReviewCall() {
-    var session = ReviewSession.create("owner/repo", 1, "PR", "sha");
+    var session =
+        ReviewSession.create(TestScopes.scope("owner/repo"), "owner/repo", 1, "PR", "sha");
     var template =
         new AiReviewService.PromptInputs("raw legacy diff", "ctx", "base", "s", "t", "", "");
     var plan =
@@ -3017,7 +3078,8 @@ class FindingPipelineTest {
 
   @Test
   void budgetedPlanWithNoReviewableFilesKeepsTheLegacySingleCall() {
-    var session = ReviewSession.create("owner/repo", 1, "PR", "sha");
+    var session =
+        ReviewSession.create(TestScopes.scope("owner/repo"), "owner/repo", 1, "PR", "sha");
     var template =
         new AiReviewService.PromptInputs("(no changes detected)", "ctx", "base", "s", "t", "", "");
     var plan =
@@ -3040,7 +3102,8 @@ class FindingPipelineTest {
 
   @Test
   void summaryInputsDiscloseOmittedFilesByName() {
-    var session = ReviewSession.create("owner/repo", 1, "Huge PR", "sha");
+    var session =
+        ReviewSession.create(TestScopes.scope("owner/repo"), "owner/repo", 1, "Huge PR", "sha");
     var ctx = reviewContext();
     var template = new AiReviewService.PromptInputs("d", "ctx", "base", "stack", "tests", "", "");
     when(aiReviewService.reviewBatch(eq(session), any(), anyInt(), anyInt()))
@@ -3092,7 +3155,8 @@ class FindingPipelineTest {
             SecurityScan.disabled(),
             SummaryVerificationService.disabled(),
             mock(ModelRouter.class));
-    var session = ReviewSession.create("owner/repo", 1, "PR", "sha");
+    var session =
+        ReviewSession.create(TestScopes.scope("owner/repo"), "owner/repo", 1, "PR", "sha");
     var template = new AiReviewService.PromptInputs("d", "ctx", "base", "stack", "tests", "", "");
     when(aiReviewService.reviewBatch(eq(session), any(), anyInt(), anyInt()))
         .thenReturn(new ReviewResponse(List.of(finding("a.java", "A")), List.of(), null));
@@ -3141,7 +3205,9 @@ class FindingPipelineTest {
    */
   @Test
   void aBudgetedBatchThatIntroducesHeuristicCodeCarriesTheFailureModeDimension() {
-    var session = ReviewSession.create("owner/repo", 1, "Add a trigger regex", "sha");
+    var session =
+        ReviewSession.create(
+            TestScopes.scope("owner/repo"), "owner/repo", 1, "Add a trigger regex", "sha");
     var ctx = reviewContext();
     // repoInstructions is what assemble() produces under budgeting: no heuristic section in it.
     var template =
@@ -3201,7 +3267,8 @@ class FindingPipelineTest {
    */
   @Test
   void withRoutingOnEachBatchCarriesTheDimensionsOfItsOwnFiles() {
-    var session = ReviewSession.create("owner/repo", 1, "Big PR", "sha");
+    var session =
+        ReviewSession.create(TestScopes.scope("owner/repo"), "owner/repo", 1, "Big PR", "sha");
     var docs = batchAdding("README.md", "| `X_KEY` | the key | `1` |");
     var code = batchAdding("src/main/java/app/Plain.java", "  var total = a + b;");
     var plan =
@@ -3244,7 +3311,8 @@ class FindingPipelineTest {
 
   @Test
   void withRoutingOffEveryBatchCarriesTheMonolith() {
-    var session = ReviewSession.create("owner/repo", 1, "Big PR", "sha");
+    var session =
+        ReviewSession.create(TestScopes.scope("owner/repo"), "owner/repo", 1, "Big PR", "sha");
     var captor = ArgumentCaptor.forClass(AiReviewService.PromptInputs.class);
     when(aiReviewService.reviewBatch(eq(session), captor.capture(), anyInt(), anyInt()))
         .thenReturn(new ReviewResponse(List.of(), List.of(), null));
@@ -3267,7 +3335,8 @@ class FindingPipelineTest {
 
   @Test
   void withRoutingOnTheBudgetedSingleCallIsRoutedFromItsBatch() {
-    var session = ReviewSession.create("owner/repo", 1, "Docs", "sha");
+    var session =
+        ReviewSession.create(TestScopes.scope("owner/repo"), "owner/repo", 1, "Docs", "sha");
     var docs = batchAdding("docs/config.md", "| `X_KEY` | the key | `1` |");
     var captor = ArgumentCaptor.forClass(AiReviewService.PromptInputs.class);
     when(aiReviewService.review(eq(session), captor.capture()))
@@ -3288,7 +3357,8 @@ class FindingPipelineTest {
   @Test
   void withRoutingOnAnUnbudgetedCallKeepsTheAssemblersPrompt() {
     // Budgeting off, the one call reviews the whole pull request, whose prompt the assembler chose.
-    var session = ReviewSession.create("owner/repo", 1, "PR", "sha");
+    var session =
+        ReviewSession.create(TestScopes.scope("owner/repo"), "owner/repo", 1, "PR", "sha");
     var template =
         new AiReviewService.PromptInputs(
             "raw legacy diff", "ctx", "base", "s", "t", "", "", "", "ASSEMBLED_PROMPT");
@@ -3314,7 +3384,8 @@ class FindingPipelineTest {
   /** Only the batch whose own slice introduces the rule pays for the dimension. */
   @Test
   void theHeuristicDimensionIsScopedToTheBatchThatIntroducesTheRule() {
-    var session = ReviewSession.create("owner/repo", 1, "Big PR", "sha");
+    var session =
+        ReviewSession.create(TestScopes.scope("owner/repo"), "owner/repo", 1, "Big PR", "sha");
     var ctx = reviewContext();
     var template = new AiReviewService.PromptInputs("", "ctx", "", "stack", "tests", "", "");
     var plan =
@@ -3360,7 +3431,8 @@ class FindingPipelineTest {
    */
   @Test
   void aBatchOfTestFilesDoesNotTriggerTheHeuristicDimension() {
-    var session = ReviewSession.create("owner/repo", 1, "Add a test", "sha");
+    var session =
+        ReviewSession.create(TestScopes.scope("owner/repo"), "owner/repo", 1, "Add a test", "sha");
     var ctx = reviewContext();
     var template = new AiReviewService.PromptInputs("", "ctx", "", "stack", "tests", "", "");
     var captor = ArgumentCaptor.forClass(AiReviewService.PromptInputs.class);
@@ -3388,7 +3460,8 @@ class FindingPipelineTest {
   /** A section header rendered without the {@code " (status, +a -d)"} suffix still scopes. */
   @Test
   void aSectionHeaderWithoutItsStatsSuffixStillScopesTheHeuristicDetector() {
-    var session = ReviewSession.create("owner/repo", 1, "Add a test", "sha");
+    var session =
+        ReviewSession.create(TestScopes.scope("owner/repo"), "owner/repo", 1, "Add a test", "sha");
     var ctx = reviewContext();
     var template = new AiReviewService.PromptInputs("", "ctx", "", "stack", "tests", "", "");
     var bare =
@@ -3419,7 +3492,8 @@ class FindingPipelineTest {
    */
   @Test
   void aBatchWithNoTextSaysTheHeuristicDimensionCouldNotBeEvaluated() {
-    var session = ReviewSession.create("owner/repo", 1, "Empty batch", "sha");
+    var session =
+        ReviewSession.create(TestScopes.scope("owner/repo"), "owner/repo", 1, "Empty batch", "sha");
     var ctx = reviewContext();
     var template = new AiReviewService.PromptInputs("", "ctx", "", "stack", "tests", "", "");
     var empty =
@@ -3475,7 +3549,8 @@ class FindingPipelineTest {
    */
   @Test
   void anOverviewTooSmallForItsScopeHeaderIsWithheldNotReducedToABareRollup() {
-    var session = ReviewSession.create("owner/repo", 1, "Huge PR", "sha");
+    var session =
+        ReviewSession.create(TestScopes.scope("owner/repo"), "owner/repo", 1, "Huge PR", "sha");
     var ctx = reviewContext();
     var template = new AiReviewService.PromptInputs("d", "d", "", "", "", "", "");
     var inherited = PrReviewPrompts.SUMMARY_SYSTEM + PrReviewPrompts.SUMMARY_USER + "d";
@@ -3504,7 +3579,9 @@ class FindingPipelineTest {
   /** A clamped overview with no per-file row at all is its header, with no rollup note. */
   @Test
   void aClampedOverviewWithNoFileRowsIsJustItsScopeHeader() {
-    var session = ReviewSession.create("owner/repo", 1, "All files ignored", "sha");
+    var session =
+        ReviewSession.create(
+            TestScopes.scope("owner/repo"), "owner/repo", 1, "All files ignored", "sha");
     var ctx = reviewContext(List.of(), List.of(), new ReviewContextLoader.PrTotals(23, 1612, 240));
     var template = new AiReviewService.PromptInputs("d", "d", "", "", "", "", "");
     var inherited = PrReviewPrompts.SUMMARY_SYSTEM + PrReviewPrompts.SUMMARY_USER + "d";
@@ -3538,7 +3615,8 @@ class FindingPipelineTest {
    */
   @Test
   void theOverviewNamesTheSpendCeilingForAFileSkippedAtIt() {
-    var session = ReviewSession.create("owner/repo", 1, "Ceiling PR", "sha");
+    var session =
+        ReviewSession.create(TestScopes.scope("owner/repo"), "owner/repo", 1, "Ceiling PR", "sha");
     var ctx = reviewContext();
     var template = new AiReviewService.PromptInputs("d", "d", "", "", "", "", "");
     var plan = multiBatchPlan();
@@ -3566,7 +3644,8 @@ class FindingPipelineTest {
   /** With room for the header, the tail is still rolled up — by file count, and only files. */
   @Test
   void aClampedOverviewKeepsItsScopeHeaderAndCountsOnlyTheDroppedFiles() {
-    var session = ReviewSession.create("owner/repo", 1, "Wide PR", "sha");
+    var session =
+        ReviewSession.create(TestScopes.scope("owner/repo"), "owner/repo", 1, "Wide PR", "sha");
     var files = new ArrayList<FileDiff>();
     for (var i = 0; i < 60; i++) {
       files.add(
@@ -3616,7 +3695,8 @@ class FindingPipelineTest {
    */
   @Test
   void resolvesCitedLocationsBeforeTheQuoteValidatorStripsTheQuote() {
-    var session = ReviewSession.create("owner/repo", 1, "PR", "sha");
+    var session =
+        ReviewSession.create(TestScopes.scope("owner/repo"), "owner/repo", 1, "PR", "sha");
     var template = new AiReviewService.PromptInputs("d", "ctx", "base", "stack", "tests", "", "");
     var raised =
         new ReviewResponse.Finding(
@@ -3717,7 +3797,8 @@ class FindingPipelineTest {
 
     var first =
         pipeline.run(
-            ReviewSession.create("owner/repo", 70, "PR", "2659f683"),
+            ReviewSession.create(
+                TestScopes.scope("owner/repo"), "owner/repo", 70, "PR", "2659f683"),
             template,
             ctx,
             singleBatchPlan(batch("Repositories/ReservationRepository.cs"), List.of()),
@@ -3727,7 +3808,8 @@ class FindingPipelineTest {
 
     var second =
         pipeline.run(
-            ReviewSession.create("owner/repo", 70, "PR", "2659f683"),
+            ReviewSession.create(
+                TestScopes.scope("owner/repo"), "owner/repo", 70, "PR", "2659f683"),
             template,
             ctx,
             singleBatchPlan(batch("Repositories/ReservationRepository.cs"), List.of()),
@@ -3758,7 +3840,7 @@ class FindingPipelineTest {
         .thenAnswer(inv -> inv.getArgument(1));
 
     pipeline.run(
-        ReviewSession.create("owner/repo", 70, "PR", "2659f683"),
+        ReviewSession.create(TestScopes.scope("owner/repo"), "owner/repo", 70, "PR", "2659f683"),
         template,
         ctx,
         singleBatchPlan(batch("a.java"), List.of()),
@@ -3766,7 +3848,8 @@ class FindingPipelineTest {
         ReviewEvidence.NONE);
     var afterPush =
         pipeline.run(
-            ReviewSession.create("owner/repo", 70, "PR", "9c1d4e07"),
+            ReviewSession.create(
+                TestScopes.scope("owner/repo"), "owner/repo", 70, "PR", "9c1d4e07"),
             template,
             ctx,
             singleBatchPlan(batch("a.java"), List.of()),
@@ -3820,7 +3903,8 @@ class FindingPipelineTest {
   void aGapThePreviousSummaryListedIsPutToTheSummaryCallAndKeptThroughItsSilence() {
     // #923: round 2's summary call returned no linked-issue gap, and the section lost the one
     // round 1 had listed. It is now asked about by label, and a call that says nothing keeps it.
-    var session = ReviewSession.create("owner/repo", 1, "PR", "sha");
+    var session =
+        ReviewSession.create(TestScopes.scope("owner/repo"), "owner/repo", 1, "PR", "sha");
     when(aiReviewService.reviewBatch(eq(session), any(), anyInt(), anyInt()))
         .thenReturn(new ReviewResponse(List.of(), List.of(), null));
     var silent = new ReviewResponse.Summary(0, 0, 0, 0, 0, "ok", "Adds a marketplace.", List.of());
@@ -3848,7 +3932,8 @@ class FindingPipelineTest {
 
   @Test
   void aGapTheSummaryCallResolvesLeavesAndNothingCarriedAsksNothing() {
-    var session = ReviewSession.create("owner/repo", 1, "PR", "sha");
+    var session =
+        ReviewSession.create(TestScopes.scope("owner/repo"), "owner/repo", 1, "PR", "sha");
     when(aiReviewService.reviewBatch(eq(session), any(), anyInt(), anyInt()))
         .thenReturn(new ReviewResponse(List.of(), List.of(), null));
     var resolves =
@@ -3885,7 +3970,7 @@ class FindingPipelineTest {
     assertEquals(List.of(), result.summary().addressedGaps());
 
     // A pull request that now links a different issue no longer carries #113's gap at all.
-    var other = ReviewSession.create("owner/repo", 1, "PR", "sha");
+    var other = ReviewSession.create(TestScopes.scope("owner/repo"), "owner/repo", 1, "PR", "sha");
     when(aiReviewService.reviewBatch(eq(other), any(), anyInt(), anyInt()))
         .thenReturn(new ReviewResponse(List.of(), List.of(), null));
     var otherCaptor = ArgumentCaptor.forClass(AiReviewService.SummaryInputs.class);
@@ -3933,7 +4018,8 @@ class FindingPipelineTest {
     // #964: ThrillhouseBot-test#216 dropped an open criterion on a /review of the same head because
     // the code-blind call named it addressed. #946: a gap quoting words the description does not
     // hold is dropped, checked against the PR text the call read.
-    var session = ReviewSession.create("owner/repo", 1, "PR", "sha");
+    var session =
+        ReviewSession.create(TestScopes.scope("owner/repo"), "owner/repo", 1, "PR", "sha");
     when(aiReviewService.reviewBatch(eq(session), any(), anyInt(), anyInt()))
         .thenReturn(new ReviewResponse(List.of(), List.of(), null));
     var misquote = "The PR description claims 'the README moves to docs/RUST-VEV10.md unchanged'.";
@@ -4062,7 +4148,8 @@ class FindingPipelineTest {
   void theSummaryCallsFileSummariesAreScreenedAgainstTheChangedFiles() {
     // #964: a near-miss path is mapped onto the changed file, a placeholder is dropped, and an
     // invented ticket key leaves the purpose paragraph.
-    var session = ReviewSession.create("owner/repo", 1, "PR", "sha");
+    var session =
+        ReviewSession.create(TestScopes.scope("owner/repo"), "owner/repo", 1, "PR", "sha");
     when(aiReviewService.reviewBatch(eq(session), any(), anyInt(), anyInt()))
         .thenReturn(new ReviewResponse(List.of(), List.of(), null));
     var answer =
@@ -4137,7 +4224,8 @@ class FindingPipelineTest {
   void theSummaryCallsPathsAreCheckedAgainstTheChangeAndTheRepository() {
     // #1076 (react ThrillhouseBot-test#249): a sentence naming a README path that does not exist
     // is cut, and a near miss of a changed file is mapped onto it.
-    var session = ReviewSession.create("owner/repo", 1, "PR", "sha");
+    var session =
+        ReviewSession.create(TestScopes.scope("owner/repo"), "owner/repo", 1, "PR", "sha");
     when(aiReviewService.reviewBatch(eq(session), any(), anyInt(), anyInt()))
         .thenReturn(new ReviewResponse(List.of(), List.of(), null));
     var answer =
@@ -4223,7 +4311,8 @@ class FindingPipelineTest {
   void aFollowUpWhoseSummaryCameBackEmptyKeepsThePreviousOverviewOnTheSameHead() {
     // #944: the summary node was dropped by the parser's salvage, and the in-place edit replaced
     // round 1's overview with "Not summarized" rows on a head nothing had changed.
-    var session = ReviewSession.create("owner/repo", 1, "PR", "sha");
+    var session =
+        ReviewSession.create(TestScopes.scope("owner/repo"), "owner/repo", 1, "PR", "sha");
     when(aiReviewService.reviewBatch(eq(session), any(), anyInt(), anyInt()))
         .thenReturn(new ReviewResponse(List.of(), List.of(), null));
     when(aiReviewService.summarize(eq(session), any()))
@@ -4247,7 +4336,8 @@ class FindingPipelineTest {
 
   @Test
   void aFailedSummaryCallOnTheSameHeadKeepsThePreviousOverview() {
-    var session = ReviewSession.create("owner/repo", 1, "PR", "sha");
+    var session =
+        ReviewSession.create(TestScopes.scope("owner/repo"), "owner/repo", 1, "PR", "sha");
     when(aiReviewService.reviewBatch(eq(session), any(), anyInt(), anyInt()))
         .thenReturn(new ReviewResponse(List.of(), List.of(), null));
     when(aiReviewService.summarize(eq(session), any()))
@@ -4272,7 +4362,8 @@ class FindingPipelineTest {
   @Test
   void eachDegradedPathOnTheSameHeadKeepsThePreviousOverview() {
     // #965: the ceiling skip, the refusal mid-call and a cut with nothing salvaged.
-    var skipped = ReviewSession.create("owner/repo", 1, "PR", "sha");
+    var skipped =
+        ReviewSession.create(TestScopes.scope("owner/repo"), "owner/repo", 1, "PR", "sha");
     when(aiReviewService.reviewBatch(any(), any(), anyInt(), anyInt()))
         .thenReturn(new ReviewResponse(List.of(), List.of(), null));
     when(tokenLedger.ceilingReached(anyLong())).thenReturn(true);
@@ -4281,12 +4372,13 @@ class FindingPipelineTest {
     assertEquals("Adds a cache layer.", atCeiling.result().summary().prPurpose());
     when(tokenLedger.ceilingReached(anyLong())).thenReturn(false);
 
-    var refused = ReviewSession.create("owner/repo", 1, "PR", "sha");
+    var refused =
+        ReviewSession.create(TestScopes.scope("owner/repo"), "owner/repo", 1, "PR", "sha");
     when(aiReviewService.summarize(eq(refused), any()))
         .thenThrow(new TokenSpendCeilingExceededException(1, 1));
     assertEquals("Adds a cache layer.", runOnTheSameHead(refused).result().summary().prPurpose());
 
-    var cut = ReviewSession.create("owner/repo", 1, "PR", "sha");
+    var cut = ReviewSession.create(TestScopes.scope("owner/repo"), "owner/repo", 1, "PR", "sha");
     when(aiReviewService.summarize(eq(cut), any()))
         .thenThrow(new AiResponseTruncatedException("cut", "{\"summary\":{\"pr_pur", false));
     var truncated = runOnTheSameHead(cut);
@@ -4311,7 +4403,8 @@ class FindingPipelineTest {
 
   @Test
   void aFailedSummaryCallOnAMovedHeadKeepsTheCountsOnlyShapeItsBannerDescribes() {
-    var session = ReviewSession.create("owner/repo", 1, "PR", "sha");
+    var session =
+        ReviewSession.create(TestScopes.scope("owner/repo"), "owner/repo", 1, "PR", "sha");
     when(aiReviewService.reviewBatch(eq(session), any(), anyInt(), anyInt()))
         .thenReturn(new ReviewResponse(List.of(), List.of(), null));
     when(aiReviewService.summarize(eq(session), any()))
@@ -4385,7 +4478,8 @@ class FindingPipelineTest {
           List.of());
 
   private ReviewResponse.Summary summaryAfterTheScreen(ReviewResponse.Summary answer) {
-    var session = ReviewSession.create("owner/repo", 1, "Same head", "sha");
+    var session =
+        ReviewSession.create(TestScopes.scope("owner/repo"), "owner/repo", 1, "Same head", "sha");
     var template = new AiReviewService.PromptInputs("d", "ctx", "base", "stack", "tests", "", "");
     when(aiReviewService.reviewBatch(eq(session), any(), anyInt(), anyInt()))
         .thenReturn(new ReviewResponse(List.of(), List.of(), null));
@@ -4644,7 +4738,8 @@ class FindingPipelineTest {
                   null,
                   s.addressedGaps());
             });
-    var session = ReviewSession.create("owner/repo", 1, "Same head", "sha");
+    var session =
+        ReviewSession.create(TestScopes.scope("owner/repo"), "owner/repo", 1, "Same head", "sha");
     when(aiReviewService.reviewBatch(eq(session), any(), anyInt(), anyInt()))
         .thenReturn(new ReviewResponse(List.of(), List.of(), null));
     when(aiReviewService.summarize(eq(session), any()))

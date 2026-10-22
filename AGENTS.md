@@ -619,9 +619,23 @@ live `fence(...)` (#604).
 
 ## Persistence
 
-No migration tool. Prod runs Hibernate `schema-management.strategy=update`, and dev runs
-`drop-and-create` (`application.properties`). Adding an entity column is picked up
-automatically. A rename or drop is not, so it needs a deliberate plan.
+Flyway owns the schema (#22). The scripts in `src/main/resources/db/migration` run at boot in
+every profile, and Hibernate only validates the entities against them
+(`schema-management.strategy=validate`). An entity change therefore needs a new migration
+`V<n>__<what>.sql`; without it the suite fails at boot, because tests build their in-memory H2
+schema (PostgreSQL mode) from the same scripts. Never edit a released migration. Keep the SQL
+portable between PostgreSQL and H2, and give a new NOT NULL column on an existing table a
+default or a backfill in the same script. A database from before Flyway is baselined at V1, the
+v0.8.0 schema (`SchemaMigrationTest`).
+
+Every stored row is scoped by installation id and numeric repository id (`github/RepoScope`,
+#1220), taken from the signed webhook payload, and every reader takes a `RepoScope` (or, on the
+dashboard, the `RepositoryScope` ids). Never add a reader that matches the `owner/repo` string
+alone: a rename changes it, and the same name can exist under another installation. Rows from
+before #1220 are filled at startup by `dashboard/ScopeBackfill`; one it cannot match keeps null
+ids and is never read, except a legacy pause, which `PrPauseService` honors by its exact name. The
+startup maintenance passes (`InterruptedSessionReconciler`, `SessionCostBackfill`) read every
+session by design. The repository configuration caches are keyed by installation too.
 
 Entities: `ReviewSession` (dashboard), `PausedPr` (webhook), `FindingFeedback` (review, table
 `finding_feedback`, 👍/👎 signals) and `ReviewLearning` (review, table `review_learning`, #38).

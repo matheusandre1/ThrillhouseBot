@@ -27,6 +27,8 @@ import dev.thiagogonzaga.thrillhousebot.dashboard.ReviewSession;
 import dev.thiagogonzaga.thrillhousebot.dashboard.ReviewSessionPersistence;
 import dev.thiagogonzaga.thrillhousebot.dashboard.SessionEventBroadcaster;
 import dev.thiagogonzaga.thrillhousebot.github.*;
+import dev.thiagogonzaga.thrillhousebot.github.RepoScope;
+import dev.thiagogonzaga.thrillhousebot.github.TestScopes;
 import dev.thiagogonzaga.thrillhousebot.notification.ReviewNotifier;
 import dev.thiagogonzaga.thrillhousebot.observability.ReviewOutcomeMetrics;
 import dev.thiagogonzaga.thrillhousebot.review.ai.AiReviewService;
@@ -1668,7 +1670,8 @@ class ReviewOrchestratorTest {
         when(session.getCommitSha()).thenReturn("abcdefgh");
         when(session.getTimestamp()).thenReturn(java.time.Instant.parse("2025-06-01T12:00:00Z"));
         mockedStatic
-            .when(() -> ReviewSession.create(anyString(), anyInt(), anyString(), anyString()))
+            .when(
+                () -> ReviewSession.create(any(), anyString(), anyInt(), anyString(), anyString()))
             .thenReturn(session);
 
         when(authClient.getAuthHeader(123L)).thenReturn("Bearer test");
@@ -1706,6 +1709,7 @@ class ReviewOrchestratorTest {
                 "base1234567",
                 "main",
                 123L,
+                TestScopes.REPOSITORY_ID,
                 false));
 
         var inputsCaptor = ArgumentCaptor.forClass(AiReviewService.PromptInputs.class);
@@ -1889,7 +1893,8 @@ class ReviewOrchestratorTest {
         when(session.getCommitSha()).thenReturn("abcdefgh");
         when(session.getTimestamp()).thenReturn(java.time.Instant.parse("2025-06-01T12:00:00Z"));
         mockedStatic
-            .when(() -> ReviewSession.create(anyString(), anyInt(), anyString(), anyString()))
+            .when(
+                () -> ReviewSession.create(any(), anyString(), anyInt(), anyString(), anyString()))
             .thenReturn(session);
 
         when(authClient.getAuthHeader(123L)).thenReturn("Bearer test");
@@ -1920,6 +1925,7 @@ class ReviewOrchestratorTest {
                 "base1234567",
                 "main",
                 123L,
+                TestScopes.REPOSITORY_ID,
                 false));
 
         var inputsCaptor = ArgumentCaptor.forClass(AiReviewService.PromptInputs.class);
@@ -1939,7 +1945,8 @@ class ReviewOrchestratorTest {
         when(session.getCommitSha()).thenReturn("abcdefgh");
         when(session.getTimestamp()).thenReturn(java.time.Instant.parse("2025-06-01T12:00:00Z"));
         mockedStatic
-            .when(() -> ReviewSession.create(anyString(), anyInt(), anyString(), anyString()))
+            .when(
+                () -> ReviewSession.create(any(), anyString(), anyInt(), anyString(), anyString()))
             .thenReturn(session);
 
         when(authClient.getAuthHeader(123L)).thenReturn("Bearer test");
@@ -1977,6 +1984,7 @@ class ReviewOrchestratorTest {
                 "base1234567",
                 "main",
                 123L,
+                TestScopes.REPOSITORY_ID,
                 false));
 
         verify(session).setStatus(ReviewSession.STATUS_FAILED);
@@ -2021,7 +2029,8 @@ class ReviewOrchestratorTest {
         when(session.getCommitSha()).thenReturn("abcdefgh");
         when(session.getTimestamp()).thenReturn(java.time.Instant.parse("2025-06-01T12:00:00Z"));
         mockedStatic
-            .when(() -> ReviewSession.create(anyString(), anyInt(), anyString(), anyString()))
+            .when(
+                () -> ReviewSession.create(any(), anyString(), anyInt(), anyString(), anyString()))
             .thenReturn(session);
 
         when(authClient.getAuthHeader(123L)).thenReturn("Bearer test");
@@ -2040,6 +2049,7 @@ class ReviewOrchestratorTest {
                 "base1234567",
                 "main",
                 123L,
+                TestScopes.REPOSITORY_ID,
                 false));
 
         verify(checkRunClient, never())
@@ -2061,7 +2071,8 @@ class ReviewOrchestratorTest {
         when(session.getCommitSha()).thenReturn("abcdefgh");
         when(session.getTimestamp()).thenReturn(java.time.Instant.parse("2025-06-01T12:00:00Z"));
         mockedStatic
-            .when(() -> ReviewSession.create(anyString(), anyInt(), anyString(), anyString()))
+            .when(
+                () -> ReviewSession.create(any(), anyString(), anyInt(), anyString(), anyString()))
             .thenReturn(session);
 
         when(authClient.getAuthHeader(123L)).thenReturn("Bearer test");
@@ -2101,6 +2112,7 @@ class ReviewOrchestratorTest {
                 "base1234567",
                 "main",
                 123L,
+                TestScopes.REPOSITORY_ID,
                 false));
 
         verify(checkRunClient, times(2))
@@ -2123,7 +2135,8 @@ class ReviewOrchestratorTest {
         when(session.getCommitSha()).thenReturn("abcdefgh");
         when(session.getTimestamp()).thenReturn(java.time.Instant.parse("2025-06-01T12:00:00Z"));
         mockedStatic
-            .when(() -> ReviewSession.create(anyString(), anyInt(), anyString(), anyString()))
+            .when(
+                () -> ReviewSession.create(any(), anyString(), anyInt(), anyString(), anyString()))
             .thenReturn(session);
 
         when(authClient.getAuthHeader(123L)).thenReturn("Bearer test");
@@ -2162,6 +2175,7 @@ class ReviewOrchestratorTest {
                 "base1234567",
                 "main",
                 123L,
+                TestScopes.REPOSITORY_ID,
                 false));
 
         verify(reviewClient)
@@ -2191,7 +2205,8 @@ class ReviewOrchestratorTest {
         when(session.getCommitSha()).thenReturn("abcdefgh");
         when(session.getTimestamp()).thenReturn(java.time.Instant.parse("2025-06-01T12:00:00Z"));
         mockedStatic
-            .when(() -> ReviewSession.create(anyString(), anyInt(), anyString(), anyString()))
+            .when(
+                () -> ReviewSession.create(any(), anyString(), anyInt(), anyString(), anyString()))
             .thenReturn(session);
 
         when(authClient.getAuthHeader(123L)).thenReturn("Bearer test");
@@ -2230,6 +2245,7 @@ class ReviewOrchestratorTest {
                 "base1234567",
                 "main",
                 123L,
+                TestScopes.REPOSITORY_ID,
                 false));
 
         verify(reviewClient)
@@ -2250,7 +2266,8 @@ class ReviewOrchestratorTest {
         when(session.getCommitSha()).thenReturn("abcdefgh");
         when(session.getTimestamp()).thenReturn(java.time.Instant.parse("2025-06-01T12:00:00Z"));
         mockedStatic
-            .when(() -> ReviewSession.create(anyString(), anyInt(), anyString(), anyString()))
+            .when(
+                () -> ReviewSession.create(any(), anyString(), anyInt(), anyString(), anyString()))
             .thenReturn(session);
 
         when(authClient.getAuthHeader(123L)).thenReturn("Bearer test");
@@ -2284,6 +2301,7 @@ class ReviewOrchestratorTest {
                 "base1234567",
                 "main",
                 123L,
+                TestScopes.REPOSITORY_ID,
                 false));
 
         verify(session).setStatus(ReviewSession.STATUS_FAILED);
@@ -2312,7 +2330,8 @@ class ReviewOrchestratorTest {
         when(session.getCommitSha()).thenReturn("abcdefgh");
         when(session.getTimestamp()).thenReturn(java.time.Instant.parse("2025-06-01T12:00:00Z"));
         mockedStatic
-            .when(() -> ReviewSession.create(anyString(), anyInt(), anyString(), anyString()))
+            .when(
+                () -> ReviewSession.create(any(), anyString(), anyInt(), anyString(), anyString()))
             .thenReturn(session);
 
         when(authClient.getAuthHeader(123L)).thenReturn("Bearer test");
@@ -2344,6 +2363,7 @@ class ReviewOrchestratorTest {
                 "base1234567",
                 "main",
                 123L,
+                TestScopes.REPOSITORY_ID,
                 false));
 
         verify(reviewClient)
@@ -2368,7 +2388,8 @@ class ReviewOrchestratorTest {
         when(session.getCommitSha()).thenReturn("abcdefgh");
         when(session.getTimestamp()).thenReturn(java.time.Instant.parse("2025-06-01T12:00:00Z"));
         mockedStatic
-            .when(() -> ReviewSession.create(anyString(), anyInt(), anyString(), anyString()))
+            .when(
+                () -> ReviewSession.create(any(), anyString(), anyInt(), anyString(), anyString()))
             .thenReturn(session);
         when(authClient.getAuthHeader(123L)).thenReturn("Bearer test");
         when(checkRunClient.createCheckRun(
@@ -2418,6 +2439,7 @@ class ReviewOrchestratorTest {
                     "base1234567",
                     "main",
                     123L,
+                    TestScopes.REPOSITORY_ID,
                     false));
 
         assertTrue(surfaced);
@@ -2439,7 +2461,8 @@ class ReviewOrchestratorTest {
         when(session.getCommitSha()).thenReturn("abcdefgh");
         when(session.getTimestamp()).thenReturn(java.time.Instant.parse("2025-06-01T12:00:00Z"));
         mockedStatic
-            .when(() -> ReviewSession.create(anyString(), anyInt(), anyString(), anyString()))
+            .when(
+                () -> ReviewSession.create(any(), anyString(), anyInt(), anyString(), anyString()))
             .thenReturn(session);
 
         when(authClient.getAuthHeader(123L)).thenReturn("Bearer test");
@@ -2461,6 +2484,7 @@ class ReviewOrchestratorTest {
                 "base1234567",
                 "main",
                 123L,
+                TestScopes.REPOSITORY_ID,
                 false));
 
         verify(reviewClient, never())
@@ -2488,7 +2512,8 @@ class ReviewOrchestratorTest {
         when(session.getCommitSha()).thenReturn("abcdefgh");
         when(session.getTimestamp()).thenReturn(java.time.Instant.parse("2025-06-01T12:00:00Z"));
         mockedStatic
-            .when(() -> ReviewSession.create(anyString(), anyInt(), anyString(), anyString()))
+            .when(
+                () -> ReviewSession.create(any(), anyString(), anyInt(), anyString(), anyString()))
             .thenReturn(session);
 
         when(authClient.getAuthHeader(123L)).thenReturn("Bearer test");
@@ -2529,6 +2554,7 @@ class ReviewOrchestratorTest {
                 "base1234567",
                 "main",
                 123L,
+                TestScopes.REPOSITORY_ID,
                 false));
 
         verify(reviewClient)
@@ -2572,7 +2598,8 @@ class ReviewOrchestratorTest {
         when(session.getCommitSha()).thenReturn("abcdefgh");
         when(session.getTimestamp()).thenReturn(java.time.Instant.parse("2025-06-01T12:00:00Z"));
         mockedStatic
-            .when(() -> ReviewSession.create(anyString(), anyInt(), anyString(), anyString()))
+            .when(
+                () -> ReviewSession.create(any(), anyString(), anyInt(), anyString(), anyString()))
             .thenReturn(session);
 
         when(authClient.getAuthHeader(123L)).thenReturn("Bearer test");
@@ -2614,6 +2641,7 @@ class ReviewOrchestratorTest {
                 "base1234567",
                 "main",
                 123L,
+                TestScopes.REPOSITORY_ID,
                 false));
 
         var captor = ArgumentCaptor.forClass(PrLabeler.LabelRequest.class);
@@ -2634,7 +2662,8 @@ class ReviewOrchestratorTest {
         when(session.getCommitSha()).thenReturn("abcdefgh");
         when(session.getTimestamp()).thenReturn(java.time.Instant.parse("2025-06-01T12:00:00Z"));
         mockedStatic
-            .when(() -> ReviewSession.create(anyString(), anyInt(), anyString(), anyString()))
+            .when(
+                () -> ReviewSession.create(any(), anyString(), anyInt(), anyString(), anyString()))
             .thenReturn(session);
 
         when(authClient.getAuthHeader(123L)).thenReturn("Bearer test");
@@ -2674,6 +2703,7 @@ class ReviewOrchestratorTest {
                 "base1234567",
                 "main",
                 123L,
+                TestScopes.REPOSITORY_ID,
                 false));
 
         verify(reviewClient)
@@ -2709,7 +2739,8 @@ class ReviewOrchestratorTest {
         when(session.getCommitSha()).thenReturn("abcdefgh");
         when(session.getTimestamp()).thenReturn(java.time.Instant.parse("2025-06-01T12:00:00Z"));
         mockedStatic
-            .when(() -> ReviewSession.create(anyString(), anyInt(), anyString(), anyString()))
+            .when(
+                () -> ReviewSession.create(any(), anyString(), anyInt(), anyString(), anyString()))
             .thenReturn(session);
 
         when(authClient.getAuthHeader(123L)).thenReturn("Bearer test");
@@ -2751,6 +2782,7 @@ class ReviewOrchestratorTest {
                 "base1234567",
                 "main",
                 123L,
+                TestScopes.REPOSITORY_ID,
                 false));
 
         verify(reviewClient, times(1))
@@ -2772,7 +2804,8 @@ class ReviewOrchestratorTest {
         when(session.getCommitSha()).thenReturn("abcdefgh");
         when(session.getTimestamp()).thenReturn(java.time.Instant.parse("2025-06-01T12:00:00Z"));
         mockedStatic
-            .when(() -> ReviewSession.create(anyString(), anyInt(), anyString(), anyString()))
+            .when(
+                () -> ReviewSession.create(any(), anyString(), anyInt(), anyString(), anyString()))
             .thenReturn(session);
 
         when(authClient.getAuthHeader(123L)).thenReturn("Bearer test");
@@ -2819,6 +2852,7 @@ class ReviewOrchestratorTest {
                 "base1234567",
                 "main",
                 123L,
+                TestScopes.REPOSITORY_ID,
                 false));
 
         var updater = ArgumentCaptor.forClass(java.util.function.Consumer.class);
@@ -2842,7 +2876,8 @@ class ReviewOrchestratorTest {
         when(session.getCommitSha()).thenReturn("abcdefgh");
         when(session.getTimestamp()).thenReturn(java.time.Instant.parse("2025-06-01T12:00:00Z"));
         mockedStatic
-            .when(() -> ReviewSession.create(anyString(), anyInt(), anyString(), anyString()))
+            .when(
+                () -> ReviewSession.create(any(), anyString(), anyInt(), anyString(), anyString()))
             .thenReturn(session);
 
         when(authClient.getAuthHeader(123L)).thenReturn("Bearer test");
@@ -2882,6 +2917,7 @@ class ReviewOrchestratorTest {
                 "base1234567",
                 "main",
                 123L,
+                TestScopes.REPOSITORY_ID,
                 false));
 
         verify(reviewClient)
@@ -2904,7 +2940,8 @@ class ReviewOrchestratorTest {
         when(session.getCommitSha()).thenReturn("abcdefgh");
         when(session.getTimestamp()).thenReturn(java.time.Instant.parse("2025-06-01T12:00:00Z"));
         mockedStatic
-            .when(() -> ReviewSession.create(anyString(), anyInt(), anyString(), anyString()))
+            .when(
+                () -> ReviewSession.create(any(), anyString(), anyInt(), anyString(), anyString()))
             .thenReturn(session);
 
         when(authClient.getAuthHeader(123L)).thenReturn("Bearer test");
@@ -2947,6 +2984,7 @@ class ReviewOrchestratorTest {
                 "base1234567",
                 "main",
                 123L,
+                TestScopes.REPOSITORY_ID,
                 false));
 
         verify(reviewClient, never())
@@ -2980,7 +3018,8 @@ class ReviewOrchestratorTest {
         when(session.getCommitSha()).thenReturn("abcdefgh");
         when(session.getTimestamp()).thenReturn(java.time.Instant.parse("2025-06-01T12:00:00Z"));
         mockedStatic
-            .when(() -> ReviewSession.create(anyString(), anyInt(), anyString(), anyString()))
+            .when(
+                () -> ReviewSession.create(any(), anyString(), anyInt(), anyString(), anyString()))
             .thenReturn(session);
 
         when(authClient.getAuthHeader(123L)).thenReturn("Bearer test");
@@ -3015,7 +3054,8 @@ class ReviewOrchestratorTest {
         when(followUpAnalyzer.buildPreviousFindingsContext(
                 anyList(), anyBoolean(), any(), any(), any(), eq(BOT_ID), any(), any()))
             .thenReturn("Previous finding context");
-        when(sessionPersistence.findAllPriorAiResponseJsons("owner/repo", 42, 1L))
+        when(sessionPersistence.findAllPriorAiResponseJsons(
+                new RepoScope(123L, TestScopes.REPOSITORY_ID), 42, 1L))
             .thenReturn(List.of("{\"round\":2}", "{\"round\":1}"));
         var round2 = new ReviewResponse(List.of(), List.of(), null);
         var round1 = new ReviewResponse(List.of(), List.of(), null);
@@ -3043,6 +3083,7 @@ class ReviewOrchestratorTest {
                 "base1234567",
                 "main",
                 123L,
+                TestScopes.REPOSITORY_ID,
                 false));
 
         verify(commentClient, never())
@@ -3077,7 +3118,8 @@ class ReviewOrchestratorTest {
         when(session.getCommitSha()).thenReturn("abcdefgh");
         when(session.getTimestamp()).thenReturn(java.time.Instant.parse("2025-06-01T12:00:00Z"));
         mockedStatic
-            .when(() -> ReviewSession.create(anyString(), anyInt(), anyString(), anyString()))
+            .when(
+                () -> ReviewSession.create(any(), anyString(), anyInt(), anyString(), anyString()))
             .thenReturn(session);
 
         when(authClient.getAuthHeader(123L)).thenReturn("Bearer test");
@@ -3104,7 +3146,8 @@ class ReviewOrchestratorTest {
                         new GitHubReviewClient.ReviewResponse.User("thrillhousebot[bot]"))));
         when(instructionsResolver.resolve(anyString(), anyString(), anyString(), anyLong()))
             .thenReturn(InstructionsResolver.ResolvedInstructions.EMPTY);
-        when(sessionPersistence.findAllPriorAiResponseJsons("owner/repo", 42, 1L))
+        when(sessionPersistence.findAllPriorAiResponseJsons(
+                new RepoScope(123L, TestScopes.REPOSITORY_ID), 42, 1L))
             .thenReturn(List.of("{\"round\":1}"));
         when(followUpAnalyzer.parsePreviousResponses(List.of("{\"round\":1}")))
             .thenReturn(List.of(new ReviewResponse(List.of(), List.of(), null)));
@@ -3131,6 +3174,7 @@ class ReviewOrchestratorTest {
                 "base1234567",
                 "main",
                 123L,
+                TestScopes.REPOSITORY_ID,
                 false));
 
         // The round sends one review notification: verdict, delta and findings together.
@@ -3293,7 +3337,7 @@ class ReviewOrchestratorTest {
       when(session.getCommitSha()).thenReturn("abcdefgh");
       when(session.getTimestamp()).thenReturn(java.time.Instant.parse("2025-06-01T12:00:00Z"));
       mockedStatic
-          .when(() -> ReviewSession.create(anyString(), anyInt(), anyString(), anyString()))
+          .when(() -> ReviewSession.create(any(), anyString(), anyInt(), anyString(), anyString()))
           .thenReturn(session);
 
       when(authClient.getAuthHeader(123L)).thenReturn("Bearer test");
@@ -3319,7 +3363,8 @@ class ReviewOrchestratorTest {
                       new GitHubReviewClient.ReviewResponse.User("thrillhousebot[bot]"))));
       when(instructionsResolver.resolve(anyString(), anyString(), anyString(), anyLong()))
           .thenReturn(InstructionsResolver.ResolvedInstructions.EMPTY);
-      when(sessionPersistence.findAllPriorAiResponseJsons("owner/repo", 42, 1L))
+      when(sessionPersistence.findAllPriorAiResponseJsons(
+              new RepoScope(123L, TestScopes.REPOSITORY_ID), 42, 1L))
           .thenReturn(List.of("{\"round\":1}"));
       // The earlier round raised findings 1 and 2, so its statuses (1 fixed, 2 superseded because
       // its code left the diff) are ones that round could have produced.
@@ -3362,6 +3407,7 @@ class ReviewOrchestratorTest {
               "base1234567",
               "main",
               123L,
+              TestScopes.REPOSITORY_ID,
               forceSummary,
               "main",
               forceSummary));
@@ -3430,7 +3476,7 @@ class ReviewOrchestratorTest {
       when(session.getCommitSha()).thenReturn("abcdefgh");
       when(session.getTimestamp()).thenReturn(java.time.Instant.parse("2025-06-01T12:00:00Z"));
       mockedStatic
-          .when(() -> ReviewSession.create(anyString(), anyInt(), anyString(), anyString()))
+          .when(() -> ReviewSession.create(any(), anyString(), anyInt(), anyString(), anyString()))
           .thenReturn(session);
 
       when(authClient.getAuthHeader(123L)).thenReturn("Bearer test");
@@ -3462,6 +3508,7 @@ class ReviewOrchestratorTest {
               "base1234567",
               "main",
               123L,
+              TestScopes.REPOSITORY_ID,
               true,
               "main",
               true));
@@ -3481,7 +3528,8 @@ class ReviewOrchestratorTest {
         when(session.getCommitSha()).thenReturn("abcdefgh");
         when(session.getTimestamp()).thenReturn(java.time.Instant.parse("2025-06-01T12:00:00Z"));
         mockedStatic
-            .when(() -> ReviewSession.create(anyString(), anyInt(), anyString(), anyString()))
+            .when(
+                () -> ReviewSession.create(any(), anyString(), anyInt(), anyString(), anyString()))
             .thenReturn(session);
 
         when(authClient.getAuthHeader(123L)).thenReturn("Bearer test");
@@ -3508,7 +3556,8 @@ class ReviewOrchestratorTest {
                         new GitHubReviewClient.ReviewResponse.User("thrillhousebot[bot]"))));
         when(instructionsResolver.resolve(anyString(), anyString(), anyString(), anyLong()))
             .thenReturn(InstructionsResolver.ResolvedInstructions.EMPTY);
-        when(sessionPersistence.findAllPriorAiResponseJsons("owner/repo", 42, 1L))
+        when(sessionPersistence.findAllPriorAiResponseJsons(
+                new RepoScope(123L, TestScopes.REPOSITORY_ID), 42, 1L))
             .thenReturn(List.of("{\"round\":1}"));
         when(followUpAnalyzer.parsePreviousResponses(List.of("{\"round\":1}")))
             .thenReturn(List.of(new ReviewResponse(List.of(), List.of(), null)));
@@ -3547,6 +3596,7 @@ class ReviewOrchestratorTest {
                 "base1234567",
                 "main",
                 123L,
+                TestScopes.REPOSITORY_ID,
                 false));
 
         verify(reviewClient)
@@ -3570,7 +3620,8 @@ class ReviewOrchestratorTest {
         when(session.getCommitSha()).thenReturn("abcdefgh");
         when(session.getTimestamp()).thenReturn(java.time.Instant.parse("2025-06-01T12:00:00Z"));
         mockedStatic
-            .when(() -> ReviewSession.create(anyString(), anyInt(), anyString(), anyString()))
+            .when(
+                () -> ReviewSession.create(any(), anyString(), anyInt(), anyString(), anyString()))
             .thenReturn(session);
 
         when(authClient.getAuthHeader(123L)).thenReturn("Bearer test");
@@ -3617,6 +3668,7 @@ class ReviewOrchestratorTest {
                 "base1234567",
                 "main",
                 123L,
+                TestScopes.REPOSITORY_ID,
                 true,
                 "main",
                 true));
@@ -3652,7 +3704,8 @@ class ReviewOrchestratorTest {
         when(session.getCommitSha()).thenReturn("abcdefgh");
         when(session.getTimestamp()).thenReturn(java.time.Instant.parse("2025-06-01T12:00:00Z"));
         mockedStatic
-            .when(() -> ReviewSession.create(anyString(), anyInt(), anyString(), anyString()))
+            .when(
+                () -> ReviewSession.create(any(), anyString(), anyInt(), anyString(), anyString()))
             .thenReturn(session);
 
         when(authClient.getAuthHeader(123L)).thenReturn("Bearer test");
@@ -3701,6 +3754,7 @@ class ReviewOrchestratorTest {
                 "base1234567",
                 "main",
                 123L,
+                TestScopes.REPOSITORY_ID,
                 true,
                 "main",
                 true));
@@ -3725,7 +3779,8 @@ class ReviewOrchestratorTest {
         when(session.getCommitSha()).thenReturn("abcdefgh");
         when(session.getTimestamp()).thenReturn(java.time.Instant.parse("2025-06-01T12:00:00Z"));
         mockedStatic
-            .when(() -> ReviewSession.create(anyString(), anyInt(), anyString(), anyString()))
+            .when(
+                () -> ReviewSession.create(any(), anyString(), anyInt(), anyString(), anyString()))
             .thenReturn(session);
 
         when(authClient.getAuthHeader(123L)).thenReturn("Bearer test");
@@ -3775,6 +3830,7 @@ class ReviewOrchestratorTest {
                 "base1234567",
                 "main",
                 123L,
+                TestScopes.REPOSITORY_ID,
                 false));
 
         // The round held back by CI already posted the summary, so this round rewrites that comment
@@ -3816,7 +3872,8 @@ class ReviewOrchestratorTest {
         when(session.getCommitSha()).thenReturn("abcdefgh");
         when(session.getTimestamp()).thenReturn(java.time.Instant.parse("2025-06-01T12:00:00Z"));
         mockedStatic
-            .when(() -> ReviewSession.create(anyString(), anyInt(), anyString(), anyString()))
+            .when(
+                () -> ReviewSession.create(any(), anyString(), anyInt(), anyString(), anyString()))
             .thenReturn(session);
 
         when(authClient.getAuthHeader(123L)).thenReturn("Bearer test");
@@ -3854,6 +3911,7 @@ class ReviewOrchestratorTest {
                 "base1234567",
                 "main",
                 123L,
+                TestScopes.REPOSITORY_ID,
                 false));
 
         verify(aiReviewService).review(any(ReviewSession.class), any());
@@ -3946,7 +4004,8 @@ class ReviewOrchestratorTest {
         when(session.getCommitSha()).thenReturn("abcdefgh");
         when(session.getTimestamp()).thenReturn(java.time.Instant.parse("2025-06-01T12:00:00Z"));
         mockedStatic
-            .when(() -> ReviewSession.create(anyString(), anyInt(), anyString(), anyString()))
+            .when(
+                () -> ReviewSession.create(any(), anyString(), anyInt(), anyString(), anyString()))
             .thenReturn(session);
 
         when(authClient.getAuthHeader(123L)).thenReturn("Bearer test");
@@ -3993,6 +4052,7 @@ class ReviewOrchestratorTest {
                 "base1234567",
                 "main",
                 123L,
+                TestScopes.REPOSITORY_ID,
                 false));
 
         verify(reviewClient)
@@ -4011,7 +4071,8 @@ class ReviewOrchestratorTest {
 
     @Test
     void closeStoodDownSessionSurvivesAPersistenceFailure() {
-      var session = ReviewSession.create("owner/repo", 42, "T", "abcdefgh");
+      var session =
+          ReviewSession.create(TestScopes.scope("owner/repo"), "owner/repo", 42, "T", "abcdefgh");
       session.id = 7L;
       doThrow(new RuntimeException("db down")).when(sessionPersistence).update(anyLong(), any());
 
@@ -4042,7 +4103,8 @@ class ReviewOrchestratorTest {
         when(session.getCommitSha()).thenReturn("abcdefgh");
         when(session.getTimestamp()).thenReturn(java.time.Instant.parse("2025-06-01T12:00:00Z"));
         mockedStatic
-            .when(() -> ReviewSession.create(anyString(), anyInt(), anyString(), anyString()))
+            .when(
+                () -> ReviewSession.create(any(), anyString(), anyInt(), anyString(), anyString()))
             .thenReturn(session);
 
         when(authClient.getAuthHeader(123L)).thenReturn("Bearer test");
@@ -4095,6 +4157,7 @@ class ReviewOrchestratorTest {
                     "base1234567",
                     "main",
                     123L,
+                    TestScopes.REPOSITORY_ID,
                     false));
 
         assertFalse(surfaced);
@@ -4406,7 +4469,17 @@ class ReviewOrchestratorTest {
 
     private ReviewOrchestrator.ReviewRequest reviewRequest() {
       return new ReviewOrchestrator.ReviewRequest(
-          "owner", "repo", 42, "abcdefgh", "Test PR", "", "base1234567", "main", 123L, false);
+          "owner",
+          "repo",
+          42,
+          "abcdefgh",
+          "Test PR",
+          "",
+          "base1234567",
+          "main",
+          123L,
+          TestScopes.REPOSITORY_ID,
+          false);
     }
 
     @Test
@@ -6153,7 +6226,17 @@ class ReviewOrchestratorTest {
 
     private ReviewOrchestrator.ReviewRequest reviewRequest() {
       return new ReviewOrchestrator.ReviewRequest(
-          "owner", "repo", 7, "sha", "title", "", "base", "main", 99L, false);
+          "owner",
+          "repo",
+          7,
+          "sha",
+          "title",
+          "",
+          "base",
+          "main",
+          99L,
+          TestScopes.REPOSITORY_ID,
+          false);
     }
 
     private ReviewSession reviewSession() {
@@ -7243,7 +7326,8 @@ class ReviewOrchestratorTest {
       try (var mockedStatic = mockStatic(ReviewSession.class)) {
         var session = followUpSession();
         mockedStatic
-            .when(() -> ReviewSession.create(anyString(), anyInt(), anyString(), anyString()))
+            .when(
+                () -> ReviewSession.create(any(), anyString(), anyInt(), anyString(), anyString()))
             .thenReturn(session);
         delegateStatusGate();
         when(reviewClient.listPullRequestComments(
@@ -7256,7 +7340,8 @@ class ReviewOrchestratorTest {
                         "src/Main.java",
                         "body",
                         new GitHubReviewClient.ReviewResponse.User("thrillhousebot[bot]"))));
-        when(sessionPersistence.findAllPriorAiResponseJsons("owner/repo", 42, 1L))
+        when(sessionPersistence.findAllPriorAiResponseJsons(
+                new RepoScope(123L, TestScopes.REPOSITORY_ID), 42, 1L))
             .thenReturn(List.of(PRIOR_FINDING_JSON));
         when(followUpAnalyzer.buildPreviousFindingsContext(
                 anyList(), anyBoolean(), any(), any(), any(), eq(BOT_ID), any(), any()))
@@ -7292,9 +7377,11 @@ class ReviewOrchestratorTest {
       try (var mockedStatic = mockStatic(ReviewSession.class)) {
         var session = followUpSession();
         mockedStatic
-            .when(() -> ReviewSession.create(anyString(), anyInt(), anyString(), anyString()))
+            .when(
+                () -> ReviewSession.create(any(), anyString(), anyInt(), anyString(), anyString()))
             .thenReturn(session);
-        when(sessionPersistence.findAllPriorAiResponseJsons("owner/repo", 42, 1L))
+        when(sessionPersistence.findAllPriorAiResponseJsons(
+                new RepoScope(123L, TestScopes.REPOSITORY_ID), 42, 1L))
             .thenReturn(List.of(PRIOR_FINDING_JSON));
         when(followUpAnalyzer.buildPreviousFindingsContext(
                 anyList(), anyBoolean(), any(), any(), any(), eq(BOT_ID), any(), any()))
@@ -7330,9 +7417,11 @@ class ReviewOrchestratorTest {
       try (var mockedStatic = mockStatic(ReviewSession.class)) {
         var session = followUpSession();
         mockedStatic
-            .when(() -> ReviewSession.create(anyString(), anyInt(), anyString(), anyString()))
+            .when(
+                () -> ReviewSession.create(any(), anyString(), anyInt(), anyString(), anyString()))
             .thenReturn(session);
-        when(sessionPersistence.findAllPriorAiResponseJsons("owner/repo", 42, 1L))
+        when(sessionPersistence.findAllPriorAiResponseJsons(
+                new RepoScope(123L, TestScopes.REPOSITORY_ID), 42, 1L))
             .thenReturn(List.of(PRIOR_FINDING_JSON));
         when(followUpAnalyzer.buildPreviousFindingsContext(
                 anyList(), anyBoolean(), any(), any(), any(), eq(BOT_ID), any(), any()))
@@ -7353,9 +7442,11 @@ class ReviewOrchestratorTest {
       try (var mockedStatic = mockStatic(ReviewSession.class)) {
         var session = followUpSession();
         mockedStatic
-            .when(() -> ReviewSession.create(anyString(), anyInt(), anyString(), anyString()))
+            .when(
+                () -> ReviewSession.create(any(), anyString(), anyInt(), anyString(), anyString()))
             .thenReturn(session);
-        when(sessionPersistence.findAllPriorAiResponseJsons("owner/repo", 42, 1L))
+        when(sessionPersistence.findAllPriorAiResponseJsons(
+                new RepoScope(123L, TestScopes.REPOSITORY_ID), 42, 1L))
             .thenReturn(List.of(PRIOR_FINDING_JSON));
         when(followUpAnalyzer.buildPreviousFindingsContext(
                 anyList(), anyBoolean(), any(), any(), any(), eq(BOT_ID), any(), any()))
@@ -7393,7 +7484,8 @@ class ReviewOrchestratorTest {
       try (var mockedStatic = mockStatic(ReviewSession.class)) {
         var session = followUpSession();
         mockedStatic
-            .when(() -> ReviewSession.create(anyString(), anyInt(), anyString(), anyString()))
+            .when(
+                () -> ReviewSession.create(any(), anyString(), anyInt(), anyString(), anyString()))
             .thenReturn(session);
         delegateStatusGate();
         delegateBackstopComputation();
@@ -7413,7 +7505,8 @@ class ReviewOrchestratorTest {
                         "**🟡 MEDIUM — Dropped finding**\n\nd\n\n"
                             + SuggestionFormatter.findingMarker(1),
                         new GitHubReviewClient.ReviewResponse.User("thrillhousebot[bot]"))));
-        when(sessionPersistence.findAllPriorAiResponseJsons("owner/repo", 42, 1L))
+        when(sessionPersistence.findAllPriorAiResponseJsons(
+                new RepoScope(123L, TestScopes.REPOSITORY_ID), 42, 1L))
             .thenReturn(List.of(PRIOR_FINDING_JSON));
         when(followUpAnalyzer.buildPreviousFindingsContext(
                 anyList(), anyBoolean(), any(), any(), any(), eq(BOT_ID), any(), any()))
@@ -7450,7 +7543,8 @@ class ReviewOrchestratorTest {
       try (var mockedStatic = mockStatic(ReviewSession.class)) {
         var session = followUpSession();
         mockedStatic
-            .when(() -> ReviewSession.create(anyString(), anyInt(), anyString(), anyString()))
+            .when(
+                () -> ReviewSession.create(any(), anyString(), anyInt(), anyString(), anyString()))
             .thenReturn(session);
         delegateStatusGate();
         // The model justified finding #1, but the decline re-check overturned it to unresolved.
@@ -7466,7 +7560,8 @@ class ReviewOrchestratorTest {
         when(followUpAnalyzer.matchFindingThreads(
                 ArgumentMatchers.<List<ReviewResponse.Finding>>any(), any(), any()))
             .thenReturn(Map.of(1, 100L));
-        when(sessionPersistence.findAllPriorAiResponseJsons("owner/repo", 42, 1L))
+        when(sessionPersistence.findAllPriorAiResponseJsons(
+                new RepoScope(123L, TestScopes.REPOSITORY_ID), 42, 1L))
             .thenReturn(List.of(PRIOR_FINDING_JSON));
         when(followUpAnalyzer.buildPreviousFindingsContext(
                 anyList(), anyBoolean(), any(), any(), any(), eq(BOT_ID), any(), any()))
@@ -7548,7 +7643,17 @@ class ReviewOrchestratorTest {
 
     private ReviewOrchestrator.ReviewRequest followUpRequest() {
       return new ReviewOrchestrator.ReviewRequest(
-          "owner", "repo", 42, "abcdefgh", "Test PR", "", "base1234567", "main", 123L, false);
+          "owner",
+          "repo",
+          42,
+          "abcdefgh",
+          "Test PR",
+          "",
+          "base1234567",
+          "main",
+          123L,
+          TestScopes.REPOSITORY_ID,
+          false);
     }
   }
 
@@ -7559,7 +7664,7 @@ class ReviewOrchestratorTest {
 
     private ReviewOrchestrator.ReviewRequest request() {
       return new ReviewOrchestrator.ReviewRequest(
-          "owner", "repo", 5, "sha", "t", "", "base", "main", 1L, false);
+          "owner", "repo", 5, "sha", "t", "", "base", "main", 1L, TestScopes.REPOSITORY_ID, false);
     }
 
     private GitHubReviewClient.PullRequestComment rootComment() {
@@ -7744,7 +7849,17 @@ class ReviewOrchestratorTest {
 
     private ReviewOrchestrator.ReviewRequest manualRequest(String sha) {
       return new ReviewOrchestrator.ReviewRequest(
-          "owner", "repo", 7, sha, "(manual review)", "", "", "main", 123L, true);
+          "owner",
+          "repo",
+          7,
+          sha,
+          "(manual review)",
+          "",
+          "",
+          "main",
+          123L,
+          TestScopes.REPOSITORY_ID,
+          true);
     }
 
     @Test
@@ -7758,7 +7873,8 @@ class ReviewOrchestratorTest {
         when(session.getCommitSha()).thenReturn("");
         when(session.getTimestamp()).thenReturn(java.time.Instant.parse("2025-06-01T12:00:00Z"));
         mockedStatic
-            .when(() -> ReviewSession.create(anyString(), anyInt(), anyString(), anyString()))
+            .when(
+                () -> ReviewSession.create(any(), anyString(), anyInt(), anyString(), anyString()))
             .thenReturn(session);
 
         when(authClient.getAuthHeader(123L)).thenReturn("Bearer test");
@@ -7793,7 +7909,8 @@ class ReviewOrchestratorTest {
         when(session.getCommitSha()).thenReturn("");
         when(session.getTimestamp()).thenReturn(java.time.Instant.parse("2025-06-01T12:00:00Z"));
         mockedStatic
-            .when(() -> ReviewSession.create(anyString(), anyInt(), anyString(), anyString()))
+            .when(
+                () -> ReviewSession.create(any(), anyString(), anyInt(), anyString(), anyString()))
             .thenReturn(session);
 
         when(authClient.getAuthHeader(123L)).thenReturn("Bearer test");
@@ -7849,7 +7966,8 @@ class ReviewOrchestratorTest {
         when(session.getCommitSha()).thenReturn("");
         when(session.getTimestamp()).thenReturn(java.time.Instant.parse("2025-06-01T12:00:00Z"));
         mockedStatic
-            .when(() -> ReviewSession.create(anyString(), anyInt(), anyString(), anyString()))
+            .when(
+                () -> ReviewSession.create(any(), anyString(), anyInt(), anyString(), anyString()))
             .thenReturn(session);
 
         when(authClient.getAuthHeader(123L)).thenReturn("Bearer test");
@@ -7881,7 +7999,17 @@ class ReviewOrchestratorTest {
 
         orchestrator.review(
             new ReviewOrchestrator.ReviewRequest(
-                "owner", "repo", 7, "", "(manual review)", "", "", "main", 123L, true));
+                "owner",
+                "repo",
+                7,
+                "",
+                "(manual review)",
+                "",
+                "",
+                "main",
+                123L,
+                TestScopes.REPOSITORY_ID,
+                true));
 
         verify(checkRunClient)
             .updateCheckRun(anyString(), anyString(), anyString(), anyString(), anyLong(), any());
@@ -7940,6 +8068,7 @@ class ReviewOrchestratorTest {
           "base1234567",
           "main",
           123L,
+          TestScopes.REPOSITORY_ID,
           false,
           "main");
     }
@@ -7968,7 +8097,8 @@ class ReviewOrchestratorTest {
       try (var mockedStatic = mockStatic(ReviewSession.class)) {
         var session = sessionWithPublicId();
         mockedStatic
-            .when(() -> ReviewSession.create(anyString(), anyInt(), anyString(), anyString()))
+            .when(
+                () -> ReviewSession.create(any(), anyString(), anyInt(), anyString(), anyString()))
             .thenReturn(session);
         stubCommonReviewMocks(buildCheck("in_progress", null));
 
@@ -8003,7 +8133,8 @@ class ReviewOrchestratorTest {
       try (var mockedStatic = mockStatic(ReviewSession.class)) {
         var session = sessionWithPublicId();
         mockedStatic
-            .when(() -> ReviewSession.create(anyString(), anyInt(), anyString(), anyString()))
+            .when(
+                () -> ReviewSession.create(any(), anyString(), anyInt(), anyString(), anyString()))
             .thenReturn(session);
         stubCommonReviewMocks(buildCheck("completed", "success"));
 
@@ -8019,7 +8150,8 @@ class ReviewOrchestratorTest {
       try (var mockedStatic = mockStatic(ReviewSession.class)) {
         var session = sessionWithPublicId();
         mockedStatic
-            .when(() -> ReviewSession.create(anyString(), anyInt(), anyString(), anyString()))
+            .when(
+                () -> ReviewSession.create(any(), anyString(), anyInt(), anyString(), anyString()))
             .thenReturn(session);
         stubCommonReviewMocks(buildCheck("in_progress", null));
         // #853: the early read sees the check running; it completes before the model answers.
@@ -8057,7 +8189,8 @@ class ReviewOrchestratorTest {
       try (var mockedStatic = mockStatic(ReviewSession.class)) {
         var session = sessionWithPublicId();
         mockedStatic
-            .when(() -> ReviewSession.create(anyString(), anyInt(), anyString(), anyString()))
+            .when(
+                () -> ReviewSession.create(any(), anyString(), anyInt(), anyString(), anyString()))
             .thenReturn(session);
         stubCommonReviewMocks(buildCheck("completed", "success"));
         when(checkRunClient.getAllCombinedStatus(any(), any(), any(), any(), any()))
@@ -8084,7 +8217,8 @@ class ReviewOrchestratorTest {
       try (var mockedStatic = mockStatic(ReviewSession.class)) {
         var session = sessionWithPublicId();
         mockedStatic
-            .when(() -> ReviewSession.create(anyString(), anyInt(), anyString(), anyString()))
+            .when(
+                () -> ReviewSession.create(any(), anyString(), anyInt(), anyString(), anyString()))
             .thenReturn(session);
         stubCommonReviewMocks(buildCheck("in_progress", null));
 
@@ -8119,7 +8253,8 @@ class ReviewOrchestratorTest {
       try (var mockedStatic = mockStatic(ReviewSession.class)) {
         var session = sessionWithPublicId();
         mockedStatic
-            .when(() -> ReviewSession.create(anyString(), anyInt(), anyString(), anyString()))
+            .when(
+                () -> ReviewSession.create(any(), anyString(), anyInt(), anyString(), anyString()))
             .thenReturn(session);
         stubCommonReviewMocks(buildCheck("completed", "success"));
 
@@ -8155,7 +8290,8 @@ class ReviewOrchestratorTest {
       try (var mockedStatic = mockStatic(ReviewSession.class)) {
         var session = sessionWithPublicId();
         mockedStatic
-            .when(() -> ReviewSession.create(anyString(), anyInt(), anyString(), anyString()))
+            .when(
+                () -> ReviewSession.create(any(), anyString(), anyInt(), anyString(), anyString()))
             .thenReturn(session);
 
         orchestrator.review(request());
@@ -8290,7 +8426,8 @@ class ReviewOrchestratorTest {
       try (var mockedStatic = mockStatic(ReviewSession.class)) {
         var session = sessionWithPublicId();
         mockedStatic
-            .when(() -> ReviewSession.create(anyString(), anyInt(), anyString(), anyString()))
+            .when(
+                () -> ReviewSession.create(any(), anyString(), anyInt(), anyString(), anyString()))
             .thenReturn(session);
 
         orchestrator.review(request());
@@ -8368,7 +8505,8 @@ class ReviewOrchestratorTest {
       try (var mockedStatic = mockStatic(ReviewSession.class)) {
         var session = sessionWithPublicId();
         mockedStatic
-            .when(() -> ReviewSession.create(anyString(), anyInt(), anyString(), anyString()))
+            .when(
+                () -> ReviewSession.create(any(), anyString(), anyInt(), anyString(), anyString()))
             .thenReturn(session);
 
         orchestrator.review(request());
@@ -8422,13 +8560,15 @@ class ReviewOrchestratorTest {
               "base1234567",
               "main",
               123L,
+              TestScopes.REPOSITORY_ID,
               false,
               "main");
 
       try (var mockedStatic = mockStatic(ReviewSession.class)) {
         var session = sessionWithPublicId();
         mockedStatic
-            .when(() -> ReviewSession.create(anyString(), anyInt(), anyString(), anyString()))
+            .when(
+                () -> ReviewSession.create(any(), anyString(), anyInt(), anyString(), anyString()))
             .thenReturn(session);
         orchestrator.review(described);
       }
@@ -8478,7 +8618,8 @@ class ReviewOrchestratorTest {
       try (var mockedStatic = mockStatic(ReviewSession.class)) {
         var session = sessionWithPublicId();
         mockedStatic
-            .when(() -> ReviewSession.create(anyString(), anyInt(), anyString(), anyString()))
+            .when(
+                () -> ReviewSession.create(any(), anyString(), anyInt(), anyString(), anyString()))
             .thenReturn(session);
         stubCommonReviewMocks(buildCheck("in_progress", null));
         when(aiReviewService.review(any(ReviewSession.class), any()))
@@ -8495,7 +8636,8 @@ class ReviewOrchestratorTest {
       try (var mockedStatic = mockStatic(ReviewSession.class)) {
         var session = sessionWithPublicId();
         mockedStatic
-            .when(() -> ReviewSession.create(anyString(), anyInt(), anyString(), anyString()))
+            .when(
+                () -> ReviewSession.create(any(), anyString(), anyInt(), anyString(), anyString()))
             .thenReturn(session);
         stubCommonReviewMocks(buildCheck("in_progress", null));
         orchestrator.review(request());
@@ -8512,7 +8654,9 @@ class ReviewOrchestratorTest {
         when(checkRunClient.getAllCheckRuns(any(), any(), any(), any(), any()))
             .thenReturn(buildCheck("completed", "success").checkRuns());
         newCiHoldRevisit()
-            .revisit(new CiHoldRevisit.Recheck("owner", "repo", 42, "abcdefgh", 123L));
+            .revisit(
+                new CiHoldRevisit.Recheck(
+                    "owner", "repo", 42, "abcdefgh", 123L, TestScopes.REPOSITORY_ID));
 
         verify(reviewClient)
             .createReview(
@@ -8540,7 +8684,8 @@ class ReviewOrchestratorTest {
       try (var mockedStatic = mockStatic(ReviewSession.class)) {
         var session = sessionWithPublicId();
         mockedStatic
-            .when(() -> ReviewSession.create(anyString(), anyInt(), anyString(), anyString()))
+            .when(
+                () -> ReviewSession.create(any(), anyString(), anyInt(), anyString(), anyString()))
             .thenReturn(session);
         stubCommonReviewMocks(buildCheck("in_progress", null));
         orchestrator.review(request());
@@ -8548,7 +8693,9 @@ class ReviewOrchestratorTest {
         when(checkRunClient.getAllCheckRuns(any(), any(), any(), any(), any()))
             .thenReturn(buildCheck("completed", "failure").checkRuns());
         newCiHoldRevisit()
-            .revisit(new CiHoldRevisit.Recheck("owner", "repo", 42, "abcdefgh", 123L));
+            .revisit(
+                new CiHoldRevisit.Recheck(
+                    "owner", "repo", 42, "abcdefgh", 123L, TestScopes.REPOSITORY_ID));
 
         verify(reviewClient, never())
             .createReview(
@@ -8579,7 +8726,8 @@ class ReviewOrchestratorTest {
       try (var mockedStatic = mockStatic(ReviewSession.class)) {
         var session = sessionWithPublicId();
         mockedStatic
-            .when(() -> ReviewSession.create(anyString(), anyInt(), anyString(), anyString()))
+            .when(
+                () -> ReviewSession.create(any(), anyString(), anyInt(), anyString(), anyString()))
             .thenReturn(session);
         stubCommonReviewMocks(buildCheck("completed", "success"));
         excludeOnLabels(List.of("dependencies"));
@@ -8608,7 +8756,8 @@ class ReviewOrchestratorTest {
       try (var mockedStatic = mockStatic(ReviewSession.class)) {
         var session = sessionWithPublicId();
         mockedStatic
-            .when(() -> ReviewSession.create(anyString(), anyInt(), anyString(), anyString()))
+            .when(
+                () -> ReviewSession.create(any(), anyString(), anyInt(), anyString(), anyString()))
             .thenReturn(session);
         stubCommonReviewMocks(buildCheck("completed", "success"));
         excludeOnLabels(List.of("dependencies"));
@@ -8625,6 +8774,7 @@ class ReviewOrchestratorTest {
                     "base1234567",
                     "main",
                     123L,
+                    TestScopes.REPOSITORY_ID,
                     true,
                     "main")));
 
@@ -8639,7 +8789,8 @@ class ReviewOrchestratorTest {
       try (var mockedStatic = mockStatic(ReviewSession.class)) {
         var session = sessionWithPublicId();
         mockedStatic
-            .when(() -> ReviewSession.create(anyString(), anyInt(), anyString(), anyString()))
+            .when(
+                () -> ReviewSession.create(any(), anyString(), anyInt(), anyString(), anyString()))
             .thenReturn(session);
         stubCommonReviewMocks(buildCheck("completed", "success"));
         when(labelGate.configured()).thenReturn(true);
@@ -8659,7 +8810,8 @@ class ReviewOrchestratorTest {
       try (var mockedStatic = mockStatic(ReviewSession.class)) {
         var session = sessionWithPublicId();
         mockedStatic
-            .when(() -> ReviewSession.create(anyString(), anyInt(), anyString(), anyString()))
+            .when(
+                () -> ReviewSession.create(any(), anyString(), anyInt(), anyString(), anyString()))
             .thenReturn(session);
         stubCommonReviewMocks(buildCheck("in_progress", null));
         when(labelGate.configured()).thenReturn(true);
@@ -8673,7 +8825,9 @@ class ReviewOrchestratorTest {
         when(checkRunClient.getAllCheckRuns(any(), any(), any(), any(), any()))
             .thenReturn(buildCheck("completed", "success").checkRuns());
         newCiHoldRevisit()
-            .revisit(new CiHoldRevisit.Recheck("owner", "repo", 42, "abcdefgh", 123L));
+            .revisit(
+                new CiHoldRevisit.Recheck(
+                    "owner", "repo", 42, "abcdefgh", 123L, TestScopes.REPOSITORY_ID));
 
         verify(reviewClient, never())
             .createReview(
@@ -8705,7 +8859,8 @@ class ReviewOrchestratorTest {
         when(session.getPrNumber()).thenReturn(42);
         when(session.getTimestamp()).thenReturn(java.time.Instant.parse("2025-06-01T12:00:00Z"));
         mockedStatic
-            .when(() -> ReviewSession.create(anyString(), anyInt(), anyString(), anyString()))
+            .when(
+                () -> ReviewSession.create(any(), anyString(), anyInt(), anyString(), anyString()))
             .thenReturn(session);
 
         stubCommonReviewMocks(
@@ -8737,7 +8892,8 @@ class ReviewOrchestratorTest {
         when(session.getPrNumber()).thenReturn(42);
         when(session.getTimestamp()).thenReturn(java.time.Instant.parse("2025-06-01T12:00:00Z"));
         mockedStatic
-            .when(() -> ReviewSession.create(anyString(), anyInt(), anyString(), anyString()))
+            .when(
+                () -> ReviewSession.create(any(), anyString(), anyInt(), anyString(), anyString()))
             .thenReturn(session);
 
         stubCommonReviewMocks(
@@ -8776,7 +8932,8 @@ class ReviewOrchestratorTest {
         when(session.getPrNumber()).thenReturn(42);
         when(session.getTimestamp()).thenReturn(java.time.Instant.parse("2025-06-01T12:00:00Z"));
         mockedStatic
-            .when(() -> ReviewSession.create(anyString(), anyInt(), anyString(), anyString()))
+            .when(
+                () -> ReviewSession.create(any(), anyString(), anyInt(), anyString(), anyString()))
             .thenReturn(session);
 
         stubCommonReviewMocks(
@@ -8817,7 +8974,8 @@ class ReviewOrchestratorTest {
         when(session.getPrNumber()).thenReturn(42);
         when(session.getTimestamp()).thenReturn(java.time.Instant.parse("2025-06-01T12:00:00Z"));
         mockedStatic
-            .when(() -> ReviewSession.create(anyString(), anyInt(), anyString(), anyString()))
+            .when(
+                () -> ReviewSession.create(any(), anyString(), anyInt(), anyString(), anyString()))
             .thenReturn(session);
 
         stubCommonReviewMocks(
@@ -8828,7 +8986,17 @@ class ReviewOrchestratorTest {
                         1L, "build", "completed", "success", null))));
         var noBaseRef =
             new ReviewOrchestrator.ReviewRequest(
-                "owner", "repo", 42, "abcdefgh", "Test PR", "", "base1234567", "main", 123L, false);
+                "owner",
+                "repo",
+                42,
+                "abcdefgh",
+                "Test PR",
+                "",
+                "base1234567",
+                "main",
+                123L,
+                TestScopes.REPOSITORY_ID,
+                false);
 
         orchestrator.review(noBaseRef);
 
@@ -8857,7 +9025,8 @@ class ReviewOrchestratorTest {
         when(session.getPrNumber()).thenReturn(42);
         when(session.getTimestamp()).thenReturn(java.time.Instant.parse("2025-06-01T12:00:00Z"));
         mockedStatic
-            .when(() -> ReviewSession.create(anyString(), anyInt(), anyString(), anyString()))
+            .when(
+                () -> ReviewSession.create(any(), anyString(), anyInt(), anyString(), anyString()))
             .thenReturn(session);
 
         stubCommonReviewMocks(
@@ -8892,7 +9061,8 @@ class ReviewOrchestratorTest {
         when(session.getPrNumber()).thenReturn(42);
         when(session.getTimestamp()).thenReturn(java.time.Instant.parse("2025-06-01T12:00:00Z"));
         mockedStatic
-            .when(() -> ReviewSession.create(anyString(), anyInt(), anyString(), anyString()))
+            .when(
+                () -> ReviewSession.create(any(), anyString(), anyInt(), anyString(), anyString()))
             .thenReturn(session);
 
         stubCommonReviewMocks(
@@ -8932,7 +9102,8 @@ class ReviewOrchestratorTest {
         when(session.getPrNumber()).thenReturn(42);
         when(session.getTimestamp()).thenReturn(java.time.Instant.parse("2025-06-01T12:00:00Z"));
         mockedStatic
-            .when(() -> ReviewSession.create(anyString(), anyInt(), anyString(), anyString()))
+            .when(
+                () -> ReviewSession.create(any(), anyString(), anyInt(), anyString(), anyString()))
             .thenReturn(session);
 
         stubCommonReviewMocks(
@@ -9250,7 +9421,17 @@ class ReviewOrchestratorTest {
 
     private static ReviewOrchestrator.ReviewRequest requestFor(String sha) {
       return new ReviewOrchestrator.ReviewRequest(
-          "owner", "repo", 42, sha, "Test PR", "", "base1234567", "main", 123L, false);
+          "owner",
+          "repo",
+          42,
+          sha,
+          "Test PR",
+          "",
+          "base1234567",
+          "main",
+          123L,
+          TestScopes.REPOSITORY_ID,
+          false);
     }
 
     private ReviewSession stubbedSession() {
@@ -9317,7 +9498,8 @@ class ReviewOrchestratorTest {
       try (var mockedStatic = mockStatic(ReviewSession.class)) {
         var session = stubbedSession();
         mockedStatic
-            .when(() -> ReviewSession.create(anyString(), anyInt(), anyString(), anyString()))
+            .when(
+                () -> ReviewSession.create(any(), anyString(), anyInt(), anyString(), anyString()))
             .thenReturn(session);
         stubTwoRuns();
 
@@ -9394,7 +9576,8 @@ class ReviewOrchestratorTest {
       try (var mockedStatic = mockStatic(ReviewSession.class)) {
         var session = stubbedSession();
         mockedStatic
-            .when(() -> ReviewSession.create(anyString(), anyInt(), anyString(), anyString()))
+            .when(
+                () -> ReviewSession.create(any(), anyString(), anyInt(), anyString(), anyString()))
             .thenReturn(session);
         stubTwoRuns();
         delegateVerdictPasses();
@@ -9428,7 +9611,8 @@ class ReviewOrchestratorTest {
       try (var mockedStatic = mockStatic(ReviewSession.class)) {
         var session = stubbedSession();
         mockedStatic
-            .when(() -> ReviewSession.create(anyString(), anyInt(), anyString(), anyString()))
+            .when(
+                () -> ReviewSession.create(any(), anyString(), anyInt(), anyString(), anyString()))
             .thenReturn(session);
         stubTwoRuns();
         delegateVerdictPasses();
@@ -9477,7 +9661,8 @@ class ReviewOrchestratorTest {
         when(session.getCommitSha()).thenReturn("abcdefgh");
         when(session.getTimestamp()).thenReturn(java.time.Instant.parse("2025-06-01T12:00:00Z"));
         mockedStatic
-            .when(() -> ReviewSession.create(anyString(), anyInt(), anyString(), anyString()))
+            .when(
+                () -> ReviewSession.create(any(), anyString(), anyInt(), anyString(), anyString()))
             .thenReturn(session);
         when(authClient.getAuthHeader(123L)).thenReturn("Bearer test");
         when(checkRunClient.createCheckRun(
@@ -9506,6 +9691,7 @@ class ReviewOrchestratorTest {
                 "base1234567",
                 "main",
                 123L,
+                TestScopes.REPOSITORY_ID,
                 false));
         return session;
       }
@@ -9529,7 +9715,8 @@ class ReviewOrchestratorTest {
               null,
               null);
       var store = mock(ReviewLearningService.class);
-      when(store.listActive(123L, "owner/repo", 100)).thenReturn(List.of(learning));
+      when(store.listActive(new RepoScope(123L, TestScopes.REPOSITORY_ID), 100))
+          .thenReturn(List.of(learning));
       learnings =
           new ReviewLearnings(
               store,
@@ -9672,13 +9859,14 @@ class ReviewOrchestratorTest {
           acceptedImagePolicy(
               "We don't pin images by digest in Dockerfiles. "
                   + "The release pipeline resolves images to a digest at deployment. ".repeat(12));
-      when(store.listActive(123L, "owner/repo", 100)).thenReturn(List.of(policy));
+      when(store.listActive(new RepoScope(123L, TestScopes.REPOSITORY_ID), 100))
+          .thenReturn(List.of(policy));
       var finding = imageFindingWithRecall(store, new ReviewLearnings.Settings(true, 100, 10, 500));
       assertImagePolicyWasNotApplied(finding);
       var inputs = ArgumentCaptor.forClass(AiReviewService.PromptInputs.class);
       verify(aiReviewService).review(any(ReviewSession.class), inputs.capture());
       assertFalse(inputs.getValue().repoInstructions().contains("[L12]"));
-      verify(store).listActive(123L, "owner/repo", 100);
+      verify(store).listActive(new RepoScope(123L, TestScopes.REPOSITORY_ID), 100);
     }
 
     @Test
@@ -9686,7 +9874,8 @@ class ReviewOrchestratorTest {
       var store = mock(ReviewLearningService.class);
       var policy = acceptedImagePolicy("We don't pin images by digest in Dockerfiles.");
       var convention = convention(13, "b/Dockerfile", "Use explicit Python versions.");
-      when(store.listActive(123L, "owner/repo", 100)).thenReturn(List.of(policy, convention));
+      when(store.listActive(new RepoScope(123L, TestScopes.REPOSITORY_ID), 100))
+          .thenReturn(List.of(policy, convention));
       var finding = imageFindingWithRecall(store, new ReviewLearnings.Settings(true, 100, 1, 3000));
       assertImagePolicyWasNotApplied(finding);
       var inputs = ArgumentCaptor.forClass(AiReviewService.PromptInputs.class);
@@ -9699,7 +9888,7 @@ class ReviewOrchestratorTest {
     void aSelectedConventionWithImagePolicyTextDoesNotCoverTheFinding() throws Exception {
       var store = mock(ReviewLearningService.class);
       var policy = "We don't pin images by digest in Dockerfiles.";
-      when(store.listActive(123L, "owner/repo", 100))
+      when(store.listActive(new RepoScope(123L, TestScopes.REPOSITORY_ID), 100))
           .thenReturn(List.of(convention(12, "a/Dockerfile", policy)));
       var finding =
           imageFindingWithRecall(store, new ReviewLearnings.Settings(true, 100, 10, 3000));
@@ -9709,7 +9898,7 @@ class ReviewOrchestratorTest {
       var guidance = inputs.getValue().repoInstructions();
       assertTrue(guidance.contains("[L12] Convention"), guidance);
       assertTrue(guidance.contains(policy), guidance);
-      verify(store).listActive(123L, "owner/repo", 100);
+      verify(store).listActive(new RepoScope(123L, TestScopes.REPOSITORY_ID), 100);
     }
 
     private static GitHubPullRequestClient.FileDiff javaFile() {
@@ -9720,7 +9909,7 @@ class ReviewOrchestratorTest {
     @Test
     void theRelevantLearningsRideTheReviewPromptFenced() {
       var store = mock(ReviewLearningService.class);
-      when(store.listActive(123L, "owner/repo", 100))
+      when(store.listActive(new RepoScope(123L, TestScopes.REPOSITORY_ID), 100))
           .thenReturn(List.of(convention(1, null, "Threads are flat.")));
       learnings =
           new ReviewLearnings(
@@ -9733,7 +9922,7 @@ class ReviewOrchestratorTest {
 
       runReview(javaFile());
 
-      verify(store).listActive(123L, "owner/repo", 100);
+      verify(store).listActive(new RepoScope(123L, TestScopes.REPOSITORY_ID), 100);
       var inputs = ArgumentCaptor.forClass(AiReviewService.PromptInputs.class);
       verify(aiReviewService).review(any(ReviewSession.class), inputs.capture());
       var guidance = inputs.getValue().repoInstructions();
@@ -9759,7 +9948,7 @@ class ReviewOrchestratorTest {
     @Test
     void aDeclineOnOneDockerfileRidesTheReviewOfAnotherDockerfile() {
       var store = mock(ReviewLearningService.class);
-      when(store.listActive(123L, "owner/repo", 100))
+      when(store.listActive(new RepoScope(123L, TestScopes.REPOSITORY_ID), 100))
           .thenReturn(
               List.of(
                   new ReviewLearningService.LearningView(
@@ -9803,7 +9992,7 @@ class ReviewOrchestratorTest {
     @Test
     void aPostedReviewHandsItsFinalStatusesToTheLearningsCapture() {
       when(learnings.enabled()).thenReturn(true);
-      when(learnings.recall(anyLong(), anyString(), anyString(), any()))
+      when(learnings.recall(any(), anyString(), anyString(), any()))
           .thenReturn(ReviewLearnings.Recall.EMPTY);
 
       runReview(javaFile());
@@ -9811,7 +10000,7 @@ class ReviewOrchestratorTest {
       var capture = ArgumentCaptor.forClass(ReviewLearnings.DeclineCapture.class);
       verify(learnings).captureSurvivingDeclines(capture.capture());
       var decline = capture.getValue();
-      assertEquals(123L, decline.installationId());
+      assertEquals(new RepoScope(123L, TestScopes.REPOSITORY_ID), decline.scope());
       assertEquals("owner", decline.owner());
       assertEquals("repo", decline.repo());
       assertEquals(42, decline.prNumber());
@@ -9824,7 +10013,7 @@ class ReviewOrchestratorTest {
 
     @Test
     void withTheStoreOffNothingIsCaptured() {
-      when(learnings.recall(anyLong(), anyString(), anyString(), any()))
+      when(learnings.recall(any(), anyString(), anyString(), any()))
           .thenReturn(ReviewLearnings.Recall.EMPTY);
 
       runReview(javaFile());
