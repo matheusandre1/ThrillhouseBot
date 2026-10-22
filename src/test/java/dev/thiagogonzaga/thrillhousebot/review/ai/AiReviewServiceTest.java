@@ -1841,7 +1841,6 @@ class AiReviewServiceTest {
     assertTrue(stillInterrupted.get(), "the interrupt flag must survive the wrapped exception");
   }
 
-  /** Runs a two-attempt review whose first stream is {@code failing}; returns the waits between. */
   /** The model override each review stream was opened under (#43), in order. */
   private List<String> recordReviewModels(TokenStream first, TokenStream... then) {
     var models = new CopyOnWriteArrayList<String>();
@@ -1946,6 +1945,17 @@ class AiReviewServiceTest {
   }
 
   @Test
+  void aBlankFallbackModelIsNoFallback() {
+    when(routing.fallbackModel()).thenReturn(Optional.of("  "));
+    when(reviewConfig.maxAiRetries()).thenReturn(2);
+    var models = recordReviewModels(new ErrorTokenStream(new HttpException(503, "Unavailable")));
+
+    assertThrows(AiReviewException.class, () -> service.review(reviewSession(), PROMPT_INPUTS));
+
+    assertEquals(List.of("null", "null"), models);
+  }
+
+  @Test
   void aRoutedCallFallsBackFromTheRoutedModel() {
     when(tokenLedger.routedModel(42L)).thenReturn(Optional.of("cheap"));
     when(routing.fallbackModel()).thenReturn(Optional.of("cheap"));
@@ -1971,6 +1981,7 @@ class AiReviewServiceTest {
     assertFalse(AiReviewService.isProviderFailure(new RuntimeException("connection reset")));
   }
 
+  /** Runs a two-attempt review whose first stream is {@code failing}; returns the waits between. */
   private List<Duration> retrySleepsAfter(TokenStream failing) {
     when(reviewConfig.maxAiRetries()).thenReturn(2);
     when(parser.parse(anyString())).thenReturn(new ReviewResponse(List.of(), List.of(), null));

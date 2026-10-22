@@ -29,9 +29,11 @@ import java.util.Optional;
  * {@code AI_MODEL}.
  *
  * <p>Low risk is decided from cheap deterministic signals over the reviewable files (ignored files
- * are never sent, so they do not count): every file is a low-risk path (docs, text, lockfiles), or
- * the change is at most {@code AI_ROUTING_LOW_RISK_MAX_CHANGED_LINES} lines and no file, under its
- * new or its old name, is a high-risk path. A doubtful case resolves to the stronger model: a
+ * are never sent, so they do not count). A pull request with any file, under its new or its old
+ * name, on a high-risk path is never low risk, even when that file also matches a low-risk glob (a
+ * README under {@code .github/workflows/}). Otherwise it is low risk when every file is a low-risk
+ * path (docs, text, lockfiles), or when the change is at most {@code
+ * AI_ROUTING_LOW_RISK_MAX_CHANGED_LINES} lines. A doubtful case resolves to the stronger model: a
  * missed defect costs more than the tokens the cheaper model saves.
  */
 @ApplicationScoped
@@ -68,10 +70,14 @@ public class ModelRouter {
 
   /** Why {@code files} are low risk, or {@code null} when they are not. */
   private String lowRiskReason(List<FileDiff> files) {
+    // The high-risk list wins over an overlapping low-risk glob: the operator named that path.
+    if (files.stream().anyMatch(this::highRisk)) {
+      return null;
+    }
     if (files.stream().allMatch(f -> lowRiskPaths.matches(f.filename()))) {
       return "every file is a low-risk path";
     }
-    if (maxChangedLines <= 0 || files.stream().anyMatch(this::highRisk)) {
+    if (maxChangedLines <= 0) {
       return null;
     }
     var changedLines = files.stream().mapToLong(f -> (long) f.additions() + f.deletions()).sum();

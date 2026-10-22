@@ -381,6 +381,11 @@ class StartupConfigValidatorTest {
   }
 
   @Test
+  void passesWithBlankRoutedModelsWhichLeaveRoutingOff() {
+    new ConfigBuilder().routing(Optional.of(" "), Optional.of(""), 100).build().validate();
+  }
+
+  @Test
   void refusesARoutedModelWhoseWindowIsBelowTheBudget() {
     // #43: the plan is sized for the active model, so a routed model with a smaller declared input
     // cap would be refused for length on a call that fits.

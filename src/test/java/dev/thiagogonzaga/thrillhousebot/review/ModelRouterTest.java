@@ -93,11 +93,29 @@ class ModelRouterTest {
   }
 
   @Test
+  void aHighRiskPathWinsOverAnOverlappingLowRiskGlob() {
+    // A doc under a directory the operator listed as high risk matches both lists; the doubt
+    // resolves to the stronger model, whatever the size.
+    assertEquals(
+        Optional.empty(), router().route(List.of(file(".github/workflows/README.md", 10, 0))));
+    assertEquals(
+        Optional.empty(),
+        router().route(List.of(file("README.md", 1, 0), file("src/auth/NOTES.md", 1, 0))));
+  }
+
+  @Test
   void aFileRenamedOutOfAHighRiskPathIsStillHighRisk() {
     var renamed =
         new FileDiff("src/login/Login.java", "renamed", 1, 0, 1, "@@", "src/auth/Login.java");
 
     assertEquals(Optional.empty(), router().route(List.of(renamed)));
+  }
+
+  @Test
+  void aSmallFileRenamedFromAnOrdinaryPathIsLowRisk() {
+    var renamed = new FileDiff("src/login/Login.java", "renamed", 1, 0, 1, "@@", "src/Login.java");
+
+    assertEquals(Optional.of("cheap"), router().route(List.of(renamed)));
   }
 
   @Test

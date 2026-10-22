@@ -124,7 +124,8 @@ public class AiReviewService {
 
   /** Single-call review (normal-size PRs): streams tokens to the dashboard as they arrive. */
   public ReviewResponse review(ReviewSession session, PromptInputs inputs) {
-    return runWithRetries(session, () -> reviewStream(inputs), true, ModelLane.ACTIVE);
+    return runWithRetries(
+        session, () -> reviewStream(inputs), true, ModelLane.ACTIVE, routedModel(session));
   }
 
   /**
@@ -138,7 +139,8 @@ public class AiReviewService {
       ReviewSession session, PromptInputs inputs, int batchIndex, int batchCount) {
     broadcaster.broadcast(
         SessionEventBroadcaster.SessionEvent.batch(session, batchIndex, batchCount));
-    return runWithRetries(session, () -> reviewStream(inputs), false, ModelLane.ACTIVE);
+    return runWithRetries(
+        session, () -> reviewStream(inputs), false, ModelLane.ACTIVE, routedModel(session));
   }
 
   /**
@@ -164,7 +166,8 @@ public class AiReviewService {
                 inputs.previousFindings(),
                 inputs.repoInstructions()),
         false,
-        ModelLane.CONCISE);
+        ModelLane.CONCISE,
+        null);
   }
 
   private TokenStream reviewStream(PromptInputs inputs) {
@@ -214,9 +217,10 @@ public class AiReviewService {
       ReviewSession session,
       Supplier<TokenStream> streamFactory,
       boolean broadcastTokens,
-      ModelLane lane) {
+      ModelLane lane,
+      String firstModel) {
     var timeouts = new TimeoutBudget();
-    var model = new CallModel(firstModel(session, lane), fallbackModel());
+    var model = new CallModel(firstModel, fallbackModel());
     try {
       return attemptWithRetries(
           session, streamFactory, broadcastTokens, lane, null, timeouts, model);
@@ -243,13 +247,13 @@ public class AiReviewService {
   }
 
   /**
-   * The model a call's first attempt goes to: the one the review was routed to for a review call
-   * (#43), and {@code null}, the lane's own model, for the summary call and an unrouted review.
+   * The model the review was routed to (#43), or {@code null} for {@code AI_MODEL}. Read only by
+   * {@link #review} and {@link #reviewBatch}, which pass it to {@link #runWithRetries} as the first
+   * model; every other call passes {@code null}, so routing follows the call, not the lane or the
+   * ledger entry's lifetime.
    */
-  private String firstModel(ReviewSession session, ModelLane lane) {
-    return lane == ModelLane.ACTIVE
-        ? tokenLedger.routedModel(ReviewTokenLedger.keyFor(session)).orElse(null)
-        : null;
+  private String routedModel(ReviewSession session) {
+    return tokenLedger.routedModel(ReviewTokenLedger.keyFor(session)).orElse(null);
   }
 
   private String fallbackModel() {

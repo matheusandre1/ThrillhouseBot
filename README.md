@@ -401,11 +401,13 @@ reviews. With routing off, the prompts are unchanged from earlier releases.
 Every review call goes to `AI_MODEL` unless one of two optional models is set.
 
 - `AI_ROUTING_LOW_RISK_MODEL` reviews low-risk pull requests with a cheaper
-  model. A pull request is low risk when every reviewable file matches
-  `AI_ROUTING_LOW_RISK_PATHS` (docs, text and lockfiles by default), or when it
-  changes at most `AI_ROUTING_LOW_RISK_MAX_CHANGED_LINES` lines (default `100`;
-  `0` routes by paths alone) and touches no `AI_ROUTING_HIGH_RISK_PATHS` file
-  (workflows, SQL, migrations, `auth/`, `security/` and Dockerfiles by default).
+  model. A pull request touching an `AI_ROUTING_HIGH_RISK_PATHS` file
+  (workflows, SQL, migrations, `auth/`, `security/` and Dockerfiles by default)
+  is never low risk, even when that file also matches a low-risk glob. Otherwise
+  it is low risk when every reviewable file matches `AI_ROUTING_LOW_RISK_PATHS`
+  (docs, text and lockfiles by default), or when it changes at most
+  `AI_ROUTING_LOW_RISK_MAX_CHANGED_LINES` lines (default `100`; `0` routes by
+  paths alone).
   The decision is made once per review and logged at INFO; only the review calls
   are routed, while the summary call, the verifier and the commands keep their
   models.

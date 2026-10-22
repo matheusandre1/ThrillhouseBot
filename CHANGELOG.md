@@ -6,7 +6,7 @@ All notable changes to ThrillhouseBot.
 
 ### Added
 
-- **Risk-based model routing and fallback** (#43). `AI_ROUTING_LOW_RISK_MODEL` sends the review calls of a low-risk pull request (only docs, text or lockfiles, or a small change touching no high-risk path) to a cheaper model, and `AI_FALLBACK_MODEL` takes over a review or summary call's remaining retries after a provider error or rate limit. Both are off by default and use the same provider; the paths and the size threshold are configurable.
+- **Risk-based model routing and fallback** (#43). `AI_ROUTING_LOW_RISK_MODEL` sends the review calls of a low-risk pull request (no high-risk path, which wins over an overlapping low-risk glob, and either only docs, text or lockfiles or a small change) to a cheaper model, and `AI_FALLBACK_MODEL` takes over a review or summary call's remaining retries after a provider error or rate limit. Both are off by default and use the same provider; the paths and the size threshold are configurable.
 
 ### Fixed
 

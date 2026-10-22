@@ -1106,11 +1106,11 @@ public interface ThrillhouseConfig {
     interface RoutingConfig {
 
       /**
-       * Cheaper model for low-risk pull requests: every reviewable file matches {@code
-       * AI_ROUTING_LOW_RISK_PATHS}, or the change is at most {@code
-       * AI_ROUTING_LOW_RISK_MAX_CHANGED_LINES} lines and touches no {@code
-       * AI_ROUTING_HIGH_RISK_PATHS} file. Only the review calls are routed; the summary call, the
-       * verifier and the commands keep their own models. Unset turns routing off.
+       * Cheaper model for low-risk pull requests: those that touch no {@code
+       * AI_ROUTING_HIGH_RISK_PATHS} file and either have every reviewable file matching {@code
+       * AI_ROUTING_LOW_RISK_PATHS} or change at most {@code AI_ROUTING_LOW_RISK_MAX_CHANGED_LINES}
+       * lines. Only the review calls are routed; the summary call, the verifier and the commands
+       * keep their own models. Unset turns routing off.
        */
       @WithName("low-risk-model")
       Optional<String> lowRiskModel();
@@ -1127,15 +1127,17 @@ public interface ThrillhouseConfig {
       /**
        * Comma-separated gitignore-style globs of low-risk files (docs, text, lockfiles). A pull
        * request whose every reviewable file matches is routed to {@code AI_ROUTING_LOW_RISK_MODEL}
-       * whatever its size. Same pattern syntax as {@code THRILLHOUSEBOT_REVIEW_IGNORED_FILES}.
+       * whatever its size, unless one of them also matches {@code AI_ROUTING_HIGH_RISK_PATHS}. Same
+       * pattern syntax as {@code THRILLHOUSEBOT_REVIEW_IGNORED_FILES}.
        */
       @WithDefault("**/*.md,**/*.mdx,**/*.rst,**/*.txt,**/*.adoc,docs/,**/*.lock,**/go.sum")
       @WithName("low-risk-paths")
       List<String> lowRiskPaths();
 
       /**
-       * Comma-separated gitignore-style globs of high-risk files. A pull request touching one is
-       * never routed to the low-risk model by size, however small it is.
+       * Comma-separated gitignore-style globs of high-risk files, under the new or the old name of
+       * a renamed file. A pull request touching one is never routed to the low-risk model, however
+       * small it is and even when the file also matches {@code AI_ROUTING_LOW_RISK_PATHS}.
        */
       @WithDefault(".github/workflows/,**/*.sql,**/migrations/,**/auth/,**/security/,**/Dockerfile")
       @WithName("high-risk-paths")
